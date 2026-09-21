@@ -1,0 +1,4 @@
+group,importance_sum,top_feature
+shape,0.08763102725366931,shape.smooth_factor
+color,0.0459119496855352,color.h_skew
+texture,0.024528301886793148,texture.glcm_correlation_d3

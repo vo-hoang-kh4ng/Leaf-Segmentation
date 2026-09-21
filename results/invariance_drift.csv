@@ -1,0 +1,64 @@
+transform,block,drift_mean
+identity,shape,0.0
+identity,color,0.0
+identity,texture,0.0
+identity,texture_glcm,0.0
+identity,texture_lbp,0.0
+identity,vein,0.0
+identity,WORST:shape.smooth_factor,0.0
+rotate 15°,shape,0.03977881892303269
+rotate 15°,color,0.028297373873363743
+rotate 15°,texture,0.5100373485741982
+rotate 15°,texture_glcm,0.3316181579143274
+rotate 15°,texture_lbp,0.7241403773660433
+rotate 15°,vein,0.4403705097083409
+rotate 15°,WORST:texture.lbp_1,0.9412665475809622
+rotate 45°,shape,0.06292408398923278
+rotate 45°,color,0.02921167781018511
+rotate 45°,texture,0.5047115097539255
+rotate 45°,texture_glcm,0.33412872860733583
+rotate 45°,texture_lbp,0.709410847129833
+rotate 45°,vein,0.4707389277270528
+rotate 45°,WORST:texture.lbp_1,1.192551325565727
+rotate 90°,shape,0.030960836076819327
+rotate 90°,color,0.004570554785214073
+rotate 90°,texture,0.005111997195911723
+rotate 90°,texture_glcm,0.001487806487798173
+rotate 90°,texture_lbp,0.009461026045647981
+rotate 90°,vein,0.030581871262293645
+rotate 90°,WORST:shape.smooth_factor,0.3856989211954119
+scale 0.5,shape,0.6461982741422593
+scale 0.5,color,0.2320776515502168
+scale 0.5,texture,0.6495796679769388
+scale 0.5,texture_glcm,0.49862540799961125
+scale 0.5,texture_lbp,0.8307247799497322
+scale 0.5,vein,0.441583465049638
+scale 0.5,WORST:shape.smooth_factor,8.133379556829743
+bright ×1.3,shape,0.15212864762406741
+bright ×1.3,color,0.5562002549882804
+bright ×1.3,texture,0.3322827700951805
+bright ×1.3,texture_glcm,0.49547177490844846
+bright ×1.3,texture_lbp,0.13645596431925888
+bright ×1.3,vein,0.57177480640158
+bright ×1.3,WORST:color.v_mean,1.4108960775499977
+dark ×0.7,shape,0.012679073477781872
+dark ×0.7,color,0.5508454667244251
+dark ×0.7,texture,0.4976068957611735
+dark ×0.7,texture_glcm,0.726341267395631
+dark ×0.7,texture_lbp,0.22312564979982455
+dark ×0.7,vein,0.1603905867155397
+dark ×0.7,WORST:color.v_mean,1.5495539703576169
+noise σ=10,shape,0.022225738518207302
+noise σ=10,color,0.19735030053823052
+noise σ=10,texture,1.4676809136703568
+noise σ=10,texture_glcm,1.214429859703353
+noise σ=10,texture_lbp,1.7715821784307615
+noise σ=10,vein,1.26214055059001
+noise σ=10,WORST:texture.glcm_correlation_d1,2.789728056407886
+occlude 10%,shape,0.19363267116823754
+occlude 10%,color,2.2153637319187762
+occlude 10%,texture,1.2738247469361643
+occlude 10%,texture_glcm,0.8573681374539897
+occlude 10%,texture_lbp,1.773572678314774
+occlude 10%,vein,0.2261916306266726
+occlude 10%,WORST:color.h_std,9.064108467960125

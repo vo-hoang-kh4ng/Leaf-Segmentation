@@ -1,0 +1,55 @@
+\begin{table}[t]
+\centering
+\caption{Độ chính xác trung bình theo kiểm định chéo phân tầng 5 phần trên Flavia (1907 ảnh, 32 loài). Giá trị in đậm là kết quả cao nhất của toàn bảng.}
+\label{tab:ablation}
+\small
+\begin{tabular}{l r r r r r}
+\toprule
+Nhóm đặc trưng & \#chiều & KNN (k=5) & Naive Bayes & Random Forest & SVM (RBF) \\
+\midrule
+Hình dạng (cấu hình cơ sở) & 17 & 0{,}7897 & 0{,}8254 & 0{,}9025 & 0{,}8626 \\
+Hình dạng + Màu & 35 & 0{,}9203 & 0{,}9554 & 0{,}9759 & 0{,}9759 \\
+Hình dạng + Kết cấu & 39 & 0{,}9271 & 0{,}9313 & 0{,}9764 & 0{,}9790 \\
+Hình dạng + Gân lá & 24 & 0{,}8180 & 0{,}8794 & 0{,}9554 & 0{,}9245 \\
+Hình dạng + Màu + Kết cấu & 57 & 0{,}9554 & 0{,}9607 & 0{,}9843 & \textbf{0{,}9885} \\
+Hình dạng + Màu + Gân lá & 42 & 0{,}9219 & 0{,}9575 & 0{,}9832 & 0{,}9780 \\
+Hình dạng + Kết cấu + Gân lá & 46 & 0{,}9234 & 0{,}9428 & 0{,}9806 & 0{,}9754 \\
+Tất cả bốn nhóm & 64 & 0{,}9586 & 0{,}9623 & 0{,}9858 & 0{,}9879 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[t]
+\centering
+\caption{Toàn bộ mẫu bị phân lớp sai trên tập held-out 25\%.}
+\label{tab:errors}
+\small
+\begin{tabular}{l l r}
+\toprule
+Nhãn thật & Dự đoán & Số mẫu \\
+\midrule
+Big-fruited Holly & wintersweet & 1 \\
+Ford Woodlotus & southern magnolia & 1 \\
+peach & camphortree & 1 \\
+true indigo & Glossy Privet & 1 \\
+wintersweet & Beale's barberry & 1 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[t]
+\centering
+\caption{Ba phương pháp trích xuất gân lá, cùng ghép với nhóm \emph{Hình dạng + Màu + Kết cấu} và đánh giá trên cùng các phần kiểm định chéo. Không ô nào khác biệt có ý nghĩa thống kê so với dòng đầu (kiểm định $t$ ghép cặp; giá trị $p$ nhỏ nhất là 0{,}059 $> 0{,}05$).}
+\label{tab:vein}
+\small
+\begin{tabular}{l r r r r}
+\toprule
+Cách trích xuất gân lá & KNN (k=5) & Naive Bayes & Random Forest & SVM (RBF) \\
+\midrule
+Không dùng gân lá & 0{,}9554 & 0{,}9607 & 0{,}9843 & 0{,}9885 \\
+Ngưỡng Otsu (cách làm gốc) & 0{,}9586 & 0{,}9623 & 0{,}9858 & 0{,}9879 \\
+Ngưỡng cố định tương đối & 0{,}9643 & 0{,}9654 & 0{,}9869 & 0{,}9895 \\
+Bộ lọc Frangi & 0{,}9628 & 0{,}9696 & 0{,}9874 & 0{,}9879 \\
+\bottomrule
+\end{tabular}
+\end{table}

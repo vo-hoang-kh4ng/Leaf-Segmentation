@@ -1,0 +1,17 @@
+.venv/
+__pycache__/
+*.pyc
+
+# Flavia (1.1 GB) and extracted-feature caches: re-downloadable / re-derivable.
+data/
+cache/
+
+# Experiment outputs: keep the CSVs (the report is generated from them, so a clone can
+# rebuild the PDF without the dataset); drop demo images and run logs.
+results/*.png
+results/*.log
+
+# LaTeX build: keep only the PDF. report/generated/ stays tracked -- the PCA/LDA figure
+# needs cache/ to regenerate, so a clone could not rebuild the report without it.
+report/build/*
+!report/build/report.pdf
