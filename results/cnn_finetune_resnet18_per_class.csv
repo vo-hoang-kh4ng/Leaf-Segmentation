@@ -1,0 +1,33 @@
+species,precision,recall,f1,support
+Canadian poplar,1.0,0.9375,0.967741935483871,16
+camphortree,0.9411764705882353,1.0,0.9696969696969697,16
+Beale's barberry,1.0,1.0,1.0,14
+Anhui Barberry,1.0,1.0,1.0,16
+Chinese Toon,1.0,1.0,1.0,16
+Chinese cinnamon,1.0,1.0,1.0,14
+Chinese horse chestnut,1.0,1.0,1.0,16
+Big-fruited Holly,1.0,1.0,1.0,12
+Chinese tulip tree,1.0,1.0,1.0,13
+Crape myrtle,1.0,1.0,1.0,15
+Ford Woodlotus,1.0,1.0,1.0,13
+Glossy Privet,1.0,1.0,1.0,14
+Japan Arrowwood,1.0,1.0,1.0,15
+Japanese Flowering Cherry,1.0,1.0,1.0,14
+Japanese cheesewood,1.0,1.0,1.0,16
+Chinese redbud,1.0,1.0,1.0,18
+Japanese maple,1.0,1.0,1.0,14
+Nanmu,1.0,1.0,1.0,16
+castor aralia,1.0,1.0,1.0,13
+deodar,1.0,1.0,1.0,19
+goldenrain tree,1.0,1.0,1.0,15
+maidenhair tree,1.0,1.0,1.0,16
+oleander,1.0,1.0,1.0,17
+peach,1.0,1.0,1.0,13
+pubescent bamboo,1.0,1.0,1.0,15
+southern magnolia,1.0,1.0,1.0,14
+sweet osmanthus,1.0,1.0,1.0,14
+tangerine,1.0,1.0,1.0,14
+trident maple,1.0,1.0,1.0,13
+true indigo,1.0,1.0,1.0,18
+wintersweet,1.0,1.0,1.0,13
+yew plum pine,1.0,1.0,1.0,15

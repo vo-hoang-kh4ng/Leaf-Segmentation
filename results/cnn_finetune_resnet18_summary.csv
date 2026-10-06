@@ -1,0 +1,2 @@
+tag,accuracy,macro_precision,macro_recall,macro_f1,weighted_f1,perfect_classes,n_classes
+finetune_resnet18,0.9979035639412998,0.9981617647058824,0.998046875,0.9980449657869013,0.9979015146391896,30,32

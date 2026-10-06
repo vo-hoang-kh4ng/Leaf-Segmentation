@@ -2,6 +2,19 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
+## Two assignments, one dataset
+
+**Assignment 1** (`src/`, `report/`): hand-crafted features + classical classifiers. Done, submitted.
+**Assignment 2** (`src/cnn/`, `report2/`): the same problem solved with CNNs — due 07/10/2026.
+
+The "no deep learning" rule below applies to assignment 1 only; assignment 2 requires CNNs
+(AlexNet/VGG/ResNet/MobileNet or ViT) and explicitly requires the report to illustrate the features,
+the confusion matrix, precision and recall with figures.
+
+**The binding rule across both:** `src/cnn/data.py` reuses assignment 1's image order, stratified
+split and `RANDOM_STATE`, so CNN numbers sit in the same table as the 98.85%. Change the split and
+every comparison in report2 becomes meaningless.
+
 ## Project
 
 Individual coursework (Computer Vision): **leaf classification on the Flavia dataset** using classical
@@ -37,9 +50,27 @@ python -m src.demo <image> [--rotate DEG] [--groups shape,color,texture]  # leav
 python -m src.vein_variants   # vein extractor comparison + paired t-tests -> results/vein_variants.csv
 python -m src.redundancy      # CCA / ridge / MI / permutation importance -> results/redundancy_*.csv
 python -m src.invariance      # transform test-set images, measure per-group drop -> results/invariance*.csv
+python -m src.projection      # PCA/LDA 2-D views + KNN on k LDA axes -> results/projection.png
+python -m src.confusion       # held-out confusion matrix, off-diagonal cells only (reads results/)
 python report/build.py     # regenerate numbers/figures from results/, then build report/build/report.pdf
 python -m src.walkthrough [--auto SEC] [--no-open]  # scripted silent demo video; ~70 s of compute
 ```
+
+Assignment 2 (CNN), CPU-only — torch 2.13+cpu, no GPU:
+
+```
+python -m src.cnn.embed [--backbone NAME] [--force]   # frozen-backbone features -> cache/cnn/*.npz
+python -m src.cnn.linear_probe        # 3 backbones + paired t-tests -> results/cnn_linear_probe.csv
+python -m src.cnn.finetune [--epochs 6]               # ~45 s/epoch -> results/cnn_finetune_*
+python -m src.cnn.evaluate --source finetune|probe    # confusion matrix + precision/recall figures
+python -m src.cnn.visualise           # filters, feature maps, Grad-CAM, t-SNE -> results/cnn_*.png
+python report2/build.py               # -> report2/build/report.pdf
+python -m src.cnn.walkthrough [--auto SEC] [--no-open]  # demo video script; ~2 min of compute
+```
+
+`src.cnn.finetune` writes to `results/` by default; anything that re-runs it for show (the
+walkthrough) must redirect `--out` and `--checkpoint` to a temp dir or it destroys the 6-epoch run
+the report's confusion matrix is built from.
 
 `src.experiments` builds the cache itself when it is missing. **After editing any feature extractor you must
 pass `--force`** to `src.dataset`, otherwise every experiment silently keeps scoring the old matrix.
@@ -139,6 +170,21 @@ held-out accuracy (0.9895) or the re-extraction path is broken and every drop is
 A transform can itself be buggy and the identity control will not catch it. Rotation originally kept
 the canvas size and clipped 83% of leaves (median 4.2% of leaf area), which looked exactly like
 shape features failing to be rotation-invariant. Any new transform needs its own sanity check.
+
+## CNN findings (assignment 2)
+
+Frozen ImageNet backbones + a linear probe already beat the hand-crafted pipeline, with no training
+inside the network at all: ResNet18 0.9974 CV, MobileNetV3 0.9963, VGG11 0.9932, against 0.9885.
+Fine-tuning ResNet18's last block reaches 0.9979 held-out (1 error in 477). Paired t-tests: only
+ResNet18 vs VGG11 is significant (p=0.035); the rest is noise, so do not rank by decimals.
+
+MobileNetV3 has 52x fewer parameters than VGG11 and scores higher at 5x the speed — parameter count
+does not predict transfer quality. The report's headline is that most of the performance comes from
+the pretrained representation, not from training on Flavia; the t-SNE figure shows species already
+clustered in the frozen embedding, whereas assignment 1's PCA/LDA projections could not separate
+them in 2-D.
+
+Accuracy is at the dataset's ceiling, so new comparisons here are mostly measuring noise.
 
 ## Evaluation discipline
 

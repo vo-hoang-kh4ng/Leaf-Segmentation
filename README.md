@@ -59,9 +59,28 @@ takes ~15 min for the full dataset.
 ```
 python -m src.redundancy     # how much colour and texture overlap -> results/redundancy_*.csv
 python -m src.invariance     # invariance stress test -> results/invariance.csv, invariance_drift.csv
+python -m src.projection     # PCA/LDA projections of the feature space -> results/projection.png
+python -m src.confusion      # print the held-out confusion matrix (errors only)
 ```
 
 `src.invariance` trains on clean features and tests on transformed copies of the
 held-out images (rotation, scaling, brightness, noise, occlusion), scoring each feature
 group separately. Transformed features are cached under `cache/invariance/`; delete a
 file there to re-extract that transform.
+
+## Assignment 2 — CNN transfer learning
+
+```
+python -m src.cnn.embed          # frozen-backbone embeddings for 3 architectures
+python -m src.cnn.linear_probe   # ResNet18 / MobileNetV3 / VGG11 + paired t-tests
+python -m src.cnn.finetune       # fine-tune ResNet18's last block (~45 s/epoch on CPU)
+python -m src.cnn.evaluate --source finetune   # confusion matrix, precision, recall
+python -m src.cnn.visualise      # first-layer filters, feature maps, Grad-CAM, t-SNE
+python report2/build.py          # -> report2/build/report.pdf
+python -m src.cnn.walkthrough    # scripted demo for the video
+```
+
+CPU-only (torch 2.13+cpu). Frozen ImageNet features with a linear classifier already reach
+99.74% (5-fold CV) against 98.85% for the hand-crafted pipeline; fine-tuning ResNet18 reaches
+99.79% on the held-out split. The split and protocol are identical to assignment 1, so the
+numbers are directly comparable.

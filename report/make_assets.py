@@ -333,82 +333,34 @@ def invariance_macros(acc: pd.DataFrame, drift: pd.DataFrame) -> str:
 
 
 def projection_figure() -> str:
-    """2x2 scatter: PCA vs LDA, shape-only vs shape+color+texture. Returns macros.
+    """PCA/LDA figure and its numbers, from src.projection. Returns macros.
 
-    PCA is unsupervised and picks directions of maximum variance, which need not be
-    directions that separate species; LDA uses the labels and picks the directions that
-    do. Showing both side by side is the point -- a PCA plot alone would suggest the
-    classes are hopelessly mixed when an SVM separates them at ~99%.
-
-    Both projections are fitted on the full dataset. That is fine for a picture and
-    would be leakage for an accuracy number, so no accuracy is derived from this.
+    The computation lives in src/projection.py so the demo video (which runs that module
+    on screen) and the report show the same figure and the same numbers.
     """
+    import sys
+
     import numpy as np
-    from sklearn.decomposition import PCA
-    from sklearn.discriminant_analysis import LinearDiscriminantAnalysis
-    from sklearn.preprocessing import StandardScaler
+
+    sys.path.insert(0, str(ROOT))
+    from src.projection import LDA_AXES, analyse, plot
 
     cache = ROOT / "cache" / "features.npz"
     if not cache.exists():
         print(f"warning: {cache} missing, projection figure not generated")
         return ""
-    data = np.load(cache, allow_pickle=False)
-    names = [str(n) for n in data["feature_names"]]
-    species, y = np.unique(data["y"], return_inverse=True)
+    data = dict(np.load(cache, allow_pickle=False))
+    plot(data, OUT / "projection.png")
+    r = analyse(data)
 
-    # 32 classes: tab20 + tab20b gives 40 distinct colours without cycling.
-    palette = list(plt.cm.tab20.colors) + list(plt.cm.tab20b.colors)
-    colours = [palette[i % len(palette)] for i in y]
-
-    sets = [("Hình dạng", ("shape.",)),
-            ("Hình dạng + Màu + Kết cấu", ("shape.", "color.", "texture."))]
-    fig, axes = plt.subplots(2, 2, figsize=(9, 7.4))
+    words = {2: "two", 10: "ten"}
     macros: dict[str, str] = {}
-    for col, (title, prefixes) in enumerate(sets):
-        cols = [i for i, n in enumerate(names) if n.startswith(prefixes)]
-        X = StandardScaler().fit_transform(data["X"][:, cols])
-
-        pca = PCA(n_components=2).fit(X)
-        lda = LinearDiscriminantAnalysis(n_components=2).fit(X, y)
-        key = "shape" if col == 0 else "best"
-        macros[f"pcavar{key}"] = f"{100 * pca.explained_variance_ratio_.sum():.1f}".replace(".", "{,}")
-        macros[f"ldavar{key}"] = f"{100 * lda.explained_variance_ratio_[:2].sum():.1f}".replace(".", "{,}")
-
-        for row, (method, Z) in enumerate((("PCA", pca.transform(X)), ("LDA", lda.transform(X)))):
-            ax = axes[row, col]
-            ax.scatter(Z[:, 0], Z[:, 1], c=colours, s=4, alpha=0.7, linewidths=0)
-            ax.set_title(f"{method} — {title}", fontsize=9)
-            ax.set_xticks([])
-            ax.set_yticks([])
-    fig.tight_layout()
-    fig.savefig(OUT / "projection.png", dpi=200)
-
-    # What the picture cannot show: kNN accuracy on the first k LDA axes. LDA sits inside
-    # the pipeline so it is refitted per fold -- unlike the plot above, these numbers are
-    # held-out. They are what explains why both LDA panels look alike: the first two
-    # axes are spent on the same few shape-distinctive species in either feature set, and
-    # colour/texture only pay off from roughly the fifth axis on.
-    from sklearn.model_selection import StratifiedKFold, cross_val_score
-    from sklearn.neighbors import KNeighborsClassifier
-    from sklearn.pipeline import make_pipeline
-
-    cv = StratifiedKFold(5, shuffle=True, random_state=42)
-    for key, prefixes in (("shape", ("shape.",)), ("best", ("shape.", "color.", "texture."))):
-        cols = [i for i, n in enumerate(names) if n.startswith(prefixes)]
-        for k, word in ((2, "two"), (10, "ten")):
-            pipe = make_pipeline(StandardScaler(), LinearDiscriminantAnalysis(n_components=k),
-                                 KNeighborsClassifier(5))
-            acc = cross_val_score(pipe, data["X"][:, cols], data["y"], cv=cv).mean()
-            macros[f"ldaknn{key}{word}"] = f"{100 * acc:.1f}".replace(".", "{,}") + r"\%"
-
-    # The species that monopolise the first two discriminants, named in the caption.
-    X = StandardScaler().fit_transform(data["X"][:, [i for i, n in enumerate(names)
-                                                    if n.startswith(("shape.", "color.", "texture."))]])
-    Z = LinearDiscriminantAnalysis(n_components=2).fit_transform(X, data["y"])
-    spread = {s: float(np.linalg.norm(Z[data["y"] == s].mean(axis=0))) for s in species}
-    outliers = sorted(spread, key=spread.get, reverse=True)[:3]
-    macros["ldaoutliers"] = ", ".join(rf"\emph{{{s}}}" for s in outliers)
-
+    for key in ("shape", "best"):
+        macros[f"pcavar{key}"] = vn(f"{100 * r[f'pca_var_{key}']:.1f}")
+        macros[f"ldavar{key}"] = vn(f"{100 * r[f'lda_var_{key}']:.1f}")
+        for k in LDA_AXES:
+            macros[f"ldaknn{key}{words[k]}"] = vn(f"{100 * r[f'lda_knn_{key}_{k}']:.1f}") + r"\%"
+    macros["ldaoutliers"] = ", ".join(rf"\emph{{{s}}}" for s in r["lda_outliers"])
     return "\n".join(rf"\newcommand{{\{k}}}{{{v}}}" for k, v in macros.items())
 
 

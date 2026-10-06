@@ -1,0 +1,21 @@
+VIDEO DEMO - BÀI TẬP CÁ NHÂN THỊ GIÁC MÁY TÍNH
+Phân lớp lá cây trên bộ dữ liệu Flavia
+Học viên: Võ Hoàng Khang - MSHV: 25C01034
+
+LINK VIDEO DEMO:
+https://drive.google.com/drive/folders/1QuRhhDxrw1zLM6kmWxvqUNDS4Vu4OK5r?usp=sharing
+
+MÃ NGUỒN:
+https://github.com/vo-hoang-kh4ng/Leaf-Segmentation
+
+NỘI DUNG VIDEO
+  Toàn bộ video là phần chạy thật của script "python -m src.walkthrough", gồm 9 bước:
+   1. Kiểm tra bảng nhãn (32 loài, 1907 ảnh)
+   2. Trích xuất đặc trưng (chạy thật trên 64 ảnh, 2 ảnh mỗi loài)
+   3. Ablation và so sánh 4 bộ phân lớp
+   4. Ma trận nhầm lẫn của cấu hình tốt nhất
+   5. Chiếu không gian đặc trưng xuống 2 chiều bằng PCA và LDA
+   6. Dự đoán từng ảnh trên 4 loài có hình dạng khác nhau
+   7. Kiểm chứng tính bất biến trên một chiếc lá (xoay 0, 15 và 90 độ)
+   8. Kiểm chứng tính bất biến trên toàn tập kiểm tra
+   9. Tóm tắt kết quả chính

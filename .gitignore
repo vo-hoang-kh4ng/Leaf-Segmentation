@@ -15,3 +15,9 @@ results/*.log
 # needs cache/ to regenerate, so a clone could not rebuild the report without it.
 report/build/*
 !report/build/report.pdf
+report2/build/*
+!report2/build/report.pdf
+
+# docx generator dependencies (npm install docx in report2/ to regenerate the Word file)
+report2/node_modules/
+report2/package-lock.json

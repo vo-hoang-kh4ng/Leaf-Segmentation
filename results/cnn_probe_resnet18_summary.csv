@@ -1,0 +1,2 @@
+tag,accuracy,macro_precision,macro_recall,macro_f1,weighted_f1,perfect_classes,n_classes
+probe_resnet18,0.9937106918238994,0.9946895424836601,0.9932391826923077,0.993602563826117,0.9936572592850564,28,32

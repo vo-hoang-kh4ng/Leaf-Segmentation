@@ -158,6 +158,20 @@ def main() -> None:
     w.show(ROOT / "report" / "generated" / "ablation.png")
     w.pause()
 
+    w.heading("Ma trận nhầm lẫn của cấu hình tốt nhất (tập kiểm tra giữ lại, 477 ảnh)",
+              "Ma trận đầy đủ 32x32 mở trong cửa sổ ảnh; terminal in các ô ngoài đường chéo.",
+              "Chú ý: mỗi cặp nhầm lẫn chỉ xuất hiện một lần, không có lỗi mang tính hệ thống.")
+    w.run("src.confusion")
+    w.show(ROOT / "results" / "confusion_matrix.png")
+    w.pause()
+
+    w.heading("Chiếu không gian đặc trưng xuống 2 chiều: PCA và LDA",
+              "PCA không dùng nhãn; LDA dùng nhãn để tìm hướng tách lớp. Hai chiều không đủ",
+              "để thấy lợi ích của màu và kết cấu: nó chỉ xuất hiện khi dùng nhiều trục LDA hơn.")
+    w.run("src.projection")
+    w.show(ROOT / "results" / "projection.png")
+    w.pause()
+
     w.heading("Dự đoán từng ảnh",
               "Mô hình được huấn luyện trên 1906 ảnh còn lại, KHÔNG gồm ảnh đang dự đoán.",
               "Bốn loài có hình dạng rất khác nhau.")

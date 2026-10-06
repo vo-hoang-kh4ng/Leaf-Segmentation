@@ -1,0 +1,46 @@
+\begin{table}[t]
+\centering
+\caption{Ba backbone tiền huấn luyện ImageNet, đóng băng hoàn toàn, chỉ huấn luyện một bộ phân lớp tuyến tính phía trên. Giao thức đánh giá trùng khớp với bài tập 1: kiểm định chéo phân tầng 5 phần trên 1907 ảnh và tập kiểm tra giữ lại 25\%. Thời gian suy luận đo trên CPU 16 luồng.}
+\label{tab:backbones}
+\small
+\begin{tabular}{l r r r r r}
+\toprule
+Backbone & Tham số (M) & Số chiều & Kiểm định chéo & Giữ lại & ms/ảnh \\
+\midrule
+ResNet18 & 11{,}7 & 512 & \textbf{0{,}9974} & 0{,}9937 & 17{,}9 \\
+MobileNetV3-Small & 2{,}5 & 576 & 0{,}9963 & 0{,}9937 & 10{,}4 \\
+VGG11-BN & 132{,}9 & 4096 & 0{,}9932 & 0{,}9958 & 49{,}8 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[t]
+\centering
+\caption{So sánh với bài tập 1 trên cùng bộ dữ liệu, cùng phép chia phân tầng và cùng hạt giống ngẫu nhiên. Cấu hình fine-tune chỉ có một con số vì nó được huấn luyện trên phần huấn luyện của phép chia giữ lại, không chạy kiểm định chéo (chi phí tính toán).}
+\label{tab:comparison}
+\small
+\begin{tabular}{l r r}
+\toprule
+Phương pháp & Kiểm định chéo & Tập giữ lại \\
+\midrule
+Đặc trưng thủ công + SVM (bài tập 1) & 0{,}9885 & 0,9895 \\
+ResNet18 đóng băng + phân lớp tuyến tính & 0{,}9974 & 0{,}9937 \\
+ResNet18 fine-tune (mở khoá block cuối) & --- & 0{,}9979 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{table}[t]
+\centering
+\caption{Toàn bộ các loài không đạt F1 = 1,00 với mô hình ResNet18 fine-tune. Những loài còn lại đều đạt precision và recall bằng 1,00.}
+\label{tab:perclass}
+\small
+\begin{tabular}{l r r r r}
+\toprule
+Loài & Precision & Recall & F1 & Số mẫu \\
+\midrule
+Canadian poplar & 1{,}000 & 0{,}938 & 0{,}968 & 16 \\
+camphortree & 0{,}941 & 1{,}000 & 0{,}970 & 16 \\
+\bottomrule
+\end{tabular}
+\end{table}
