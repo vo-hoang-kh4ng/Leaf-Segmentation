@@ -13,6 +13,7 @@
 \usepackage{caption}
 \usepackage[hidelinks]{hyperref}
 \usepackage{xcolor}
+\usepackage{float}
 
 \graphicspath{{generated/}}
 \captionsetup{font=small,labelfont=bf}
@@ -38,164 +39,148 @@
 
 \begin{abstract}
 \noindent
-Báo cáo giải lại bài toán phân lớp \nclasses{} loài lá cây trên bộ dữ liệu Flavia (1907 ảnh) bằng
-mạng nơ-ron tích chập, thay cho đặc trưng thủ công của bài tập trước. Ba kiến trúc tiền huấn luyện
-trên ImageNet được so sánh ở hai chế độ sử dụng: đóng băng toàn bộ backbone và chỉ huấn luyện một
-bộ phân lớp tuyến tính, hoặc tinh chỉnh (fine-tune) khối tích chập cuối. Toàn bộ thí nghiệm dùng
-đúng phép chia dữ liệu và giao thức đánh giá của bài tập trước, nên các con số so sánh được trực
-tiếp. Kết quả chính: với backbone \emph{đóng băng hoàn toàn}, \probebestname{} đã đạt \probebestcv{}
-(kiểm định chéo 5 phần), cao hơn \cnngain{} điểm so với \classicalcv{} của quy trình đặc trưng thủ
-công; fine-tune nâng độ chính xác trên tập kiểm tra giữ lại lên \ftacc{}, chỉ còn \fterrors{} ảnh bị
-phân lớp sai trên 477 ảnh. Hai quan sát đáng chú ý: số tham số không dự báo chất lượng biểu diễn
-chuyển giao (\lightname{} với \lightparams{} triệu tham số vượt \heavyname{} với \heavyparams{}
-triệu), và phần lớn thành tích đến từ biểu diễn ImageNet có sẵn chứ không từ quá trình huấn luyện
-lại trên ảnh lá.
+Trong bài tập này em giải lại bài toán phân lớp \nclasses{} loài lá cây trên bộ Flavia (1907 ảnh),
+lần này bằng mạng nơ-ron tích chập thay cho đặc trưng thủ công của bài trước. Em thử ba kiến trúc
+đã được huấn luyện sẵn trên ImageNet, mỗi kiến trúc dùng theo hai cách: đóng băng toàn bộ mạng và
+chỉ huấn luyện một tầng phân lớp tuyến tính, hoặc tinh chỉnh thêm khối tích chập cuối. Phép chia dữ
+liệu và cách đánh giá em giữ nguyên như bài trước để hai bài so sánh được với nhau. Kết quả: khi
+đóng băng hoàn toàn, \probebestname{} đạt \probebestcv{} theo kiểm định chéo 5 phần, cao hơn
+\cnngain{} điểm so với \classicalcv{} của đặc trưng thủ công. Tinh chỉnh đưa độ chính xác trên tập
+kiểm tra giữ lại lên \ftacc{}, tức chỉ sai \fterrors{} ảnh trong 477 ảnh. Có hai điều em thấy thú vị
+khi làm: mạng nhiều tham số hơn không có nghĩa là tốt hơn, và phần lớn kết quả có được là nhờ biểu
+diễn sẵn có từ ImageNet chứ không phải nhờ huấn luyện trên ảnh lá.
 \end{abstract}
 
 \section{Giới thiệu}
 
-Bài tập trước giải bài toán Flavia bằng đặc trưng thủ công: phân đoạn lá, trích xuất bốn nhóm đặc
-trưng (hình dạng, màu sắc, kết cấu, gân lá) do con người thiết kế, rồi phân lớp bằng SVM, đạt
-\classicalcv{}. Cách làm đó đòi hỏi hiểu biết chuyên môn ở từng bước: phải biết rằng độ răng cưa
-của mép lá mang thông tin phân loài thì mới nghĩ ra đặc trưng đo nó.
+Ở bài tập trước em làm theo hướng cổ điển: phân đoạn lá khỏi nền, tự thiết kế bốn nhóm đặc trưng
+(hình dạng, màu sắc, kết cấu, gân lá) rồi đưa vào SVM. Cách đó buộc em phải hiểu khá kỹ về lá cây.
+Ví dụ, phải biết độ răng cưa của mép lá có ích cho việc phân loài thì mới nghĩ ra được đặc trưng đo
+nó. Mỗi đặc trưng đều phải tự nghĩ ra và tự cài.
 
-Mạng nơ-ron tích chập thay đổi vị trí của tri thức chuyên môn: thay vì thiết kế đặc trưng, ta thiết
-kế kiến trúc và để mạng tự học biểu diễn từ dữ liệu~\cite{lecun1998}. Trở ngại là mạng sâu cần rất
-nhiều dữ liệu, trong khi Flavia chỉ có 1907 ảnh. Lời giải tiêu chuẩn cho tình huống này là
-\emph{học chuyển giao}: lấy mạng đã huấn luyện trên ImageNet~\cite{deng2009} với hơn một triệu ảnh,
-rồi tái sử dụng biểu diễn đó cho bài toán mới.
+Mạng tích chập làm theo cách khác. Thay vì thiết kế đặc trưng, ta thiết kế kiến trúc rồi để mạng tự
+học biểu diễn từ dữ liệu~\cite{lecun1998}. Vấn đề là mạng sâu cần rất nhiều dữ liệu, mà Flavia chỉ
+có 1907 ảnh, quá ít để huấn luyện từ đầu. Cách thường dùng trong trường hợp này là học chuyển giao:
+lấy mạng đã học trên ImageNet~\cite{deng2009} với hơn một triệu ảnh rồi tái sử dụng biểu diễn của nó.
 
-Báo cáo trả lời ba câu hỏi:
+Em muốn trả lời ba câu hỏi:
 \begin{itemize}
-  \item Biểu diễn học từ ImageNet có sẵn sàng tách được 32 loài lá hay không, khi \emph{không} huấn
-        luyện lại gì trong mạng?
-  \item Ba kiến trúc với độ phức tạp chênh nhau \paramratio{} lần khác nhau thế nào trên bài toán này?
-  \item Tinh chỉnh mạng thêm được bao nhiêu so với việc chỉ dùng mạng như bộ trích đặc trưng?
+  \item Biểu diễn học từ ImageNet đã đủ để tách 32 loài lá chưa, nếu không huấn luyện lại gì trong mạng?
+  \item Ba kiến trúc chênh nhau \paramratio{} lần về số tham số thì khác nhau ra sao trên bài toán này?
+  \item Tinh chỉnh thêm được bao nhiêu so với chỉ dùng mạng để trích đặc trưng?
 \end{itemize}
 
-\section{Dữ liệu và giao thức đánh giá}
+\section{Dữ liệu và cách đánh giá}
 
-Bộ dữ liệu giữ nguyên như bài tập trước: Flavia, 1907 ảnh JPEG $1600\times1200$, \nclasses{} loài,
-mỗi lớp 50--77 ảnh, nhãn mã hoá trong số hiệu tên tệp.
+Dữ liệu vẫn là Flavia như bài trước: 1907 ảnh JPEG $1600\times1200$, \nclasses{} loài, mỗi loài
+50--77 ảnh, nhãn nằm trong số hiệu tên tệp.
 
-Điểm then chốt về phương pháp: \textbf{phép chia dữ liệu, hạt giống ngẫu nhiên và cách đánh giá được
-giữ y hệt bài tập trước} --- kiểm định chéo phân tầng 5 phần trên toàn bộ 1907 ảnh, cộng một tập
-kiểm tra giữ lại 25\% (477 ảnh) với cùng hạt giống. Nếu đổi cách chia, con số của CNN sẽ không còn
-so sánh được với con số của đặc trưng thủ công, và toàn bộ phần so sánh trong Bảng~\ref{tab:comparison}
-sẽ mất ý nghĩa.
+Em giữ nguyên phép chia dữ liệu, hạt giống ngẫu nhiên và cách đánh giá của bài trước: kiểm định chéo
+phân tầng 5 phần trên cả 1907 ảnh, cộng một tập kiểm tra giữ lại 25\% gồm 477 ảnh. Nếu đổi cách chia
+thì con số của CNN không còn đặt cạnh con số của đặc trưng thủ công được nữa, mà so sánh hai cách
+làm chính là phần em quan tâm nhất ở bài này.
 
-Một khác biệt lớn so với bài trước: \textbf{quy trình CNN không cần bước phân đoạn}. Đặc trưng thủ
-công bắt buộc phải tách lá khỏi nền trước, vì diện tích hay độ đặc chỉ định nghĩa được trên một vùng
-đã phân đoạn. CNN nhận thẳng ảnh màu, chỉ cần đưa về kích thước $224\times224$ và chuẩn hoá theo
-thống kê của ImageNet để khớp với phân phối dữ liệu mà backbone đã được huấn luyện.
+Một khác biệt lớn so với bài trước là quy trình CNN không cần phân đoạn. Với đặc trưng thủ công thì
+bắt buộc, vì diện tích hay độ đặc chỉ tính được trên một vùng đã tách khỏi nền. CNN nhận thẳng ảnh
+màu, em chỉ cần đưa về $224\times224$ và chuẩn hoá theo thống kê của ImageNet cho khớp với dữ liệu
+mà mạng đã học.
 
-Ảnh được đưa về $224\times224$ bằng phép co giãn trực tiếp chứ không cắt giữa: phép cắt sẽ xén mất
-phần chóp của những chiếc lá dài, mà chóp lá lại là chi tiết phân biệt nhiều loài.
+Em đưa ảnh về $224\times224$ bằng cách co giãn trực tiếp, không cắt giữa. Cắt giữa sẽ làm mất chóp
+của mấy chiếc lá dài, mà chóp lá lại là chỗ phân biệt được nhiều loài.
 
 \section{Cơ sở lý thuyết}
 
 \subsection{Mạng tích chập}
 
-Tầng tích chập trượt một bộ lọc nhỏ trên toàn ảnh và dùng chung một bộ trọng số cho mọi vị trí. Hai
-hệ quả quan trọng: số tham số giảm mạnh so với tầng kết nối đầy đủ, và đặc trưng học được có tính
-bất biến tịnh tiến --- một mép lá răng cưa được nhận ra bất kể nó nằm ở đâu trong ảnh. Xếp chồng
-nhiều tầng tạo ra hệ thống phân cấp: tầng đầu phản ứng với biên và vùng màu, các tầng sau tổ hợp
-chúng thành hoạ tiết rồi thành bộ phận của vật thể. AlexNet~\cite{krizhevsky2012} là công trình đưa
-kiến trúc này thành phương pháp thống trị trong thị giác máy tính.
+Tầng tích chập trượt một bộ lọc nhỏ khắp ảnh, dùng chung một bộ trọng số cho mọi vị trí. Nhờ vậy số
+tham số ít hơn hẳn so với tầng kết nối đầy đủ, và đặc trưng học được có tính bất biến tịnh tiến:
+mạng nhận ra mép lá răng cưa dù nó nằm ở đâu trong ảnh. Khi xếp chồng nhiều tầng thì các tầng đầu
+phản ứng với biên và vùng màu, các tầng sau ghép chúng lại thành hoạ tiết rồi thành bộ phận của vật
+thể. AlexNet~\cite{krizhevsky2012} là công trình đưa kiểu kiến trúc này thành hướng chủ đạo của thị
+giác máy tính.
 
-\subsection{Ba kiến trúc được so sánh}
+\subsection{Ba kiến trúc em chọn}
 
-\textbf{VGG11}~\cite{simonyan2015} theo đuổi sự đơn giản: chỉ dùng bộ lọc $3\times3$ xếp chồng, xen
-kẽ với phép gộp cực đại. Hai bộ lọc $3\times3$ liên tiếp có cùng vùng tiếp nhận với một bộ lọc
-$5\times5$ nhưng ít tham số hơn và có thêm một phi tuyến. Nhược điểm là khối kết nối đầy đủ ở cuối
-rất nặng: riêng phần này chiếm phần lớn trong \heavyparams{} triệu tham số của mạng.
+\emph{VGG11}~\cite{simonyan2015} có thiết kế đơn giản, chỉ gồm bộ lọc $3\times3$ xếp chồng xen kẽ
+với gộp cực đại. Hai bộ lọc $3\times3$ liên tiếp phủ cùng vùng ảnh như một bộ lọc $5\times5$ nhưng
+ít tham số hơn và có thêm một phi tuyến. Nhược điểm nằm ở khối kết nối đầy đủ phía cuối, chiếm phần
+lớn trong \heavyparams{} triệu tham số của mạng.
 
-\textbf{ResNet18}~\cite{he2016} giải quyết hiện tượng mạng càng sâu thì càng khó huấn luyện. Thay vì
-học trực tiếp ánh xạ $H(x)$, mỗi khối học phần dư $F(x) = H(x) - x$ và cộng lại qua kết nối tắt:
+\emph{ResNet18}~\cite{he2016} sinh ra để giải quyết chuyện mạng càng sâu càng khó huấn luyện. Mỗi
+khối không học thẳng ánh xạ $H(x)$ mà học phần dư $F(x) = H(x) - x$, rồi cộng lại qua kết nối tắt:
 \[
 y = F(x, \{W_i\}) + x .
 \]
-Kết nối tắt tạo đường truyền gradient không bị suy giảm qua nhiều tầng, nhờ đó huấn luyện được mạng
-sâu hàng chục đến hàng trăm tầng.
+Kết nối tắt cho gradient truyền thẳng qua nhiều tầng mà không suy giảm, nhờ đó huấn luyện được mạng
+sâu hàng chục tầng trở lên.
 
-\textbf{MobileNetV3-Small}~\cite{howard2019} được thiết kế cho thiết bị tính toán hạn chế. Ý tưởng
-cốt lõi là tách tích chập thường thành \emph{depthwise} (lọc riêng từng kênh) và \emph{pointwise}
-($1\times1$ để trộn kênh), giảm chi phí tính toán khoảng 8--9 lần với bộ lọc $3\times3$. Mạng bổ
-sung khối Squeeze-and-Excitation để tái trọng số các kênh và hàm kích hoạt h-swish; kiến trúc được
-tìm bằng tìm kiếm tự động.
+\emph{MobileNetV3-Small}~\cite{howard2019} nhắm tới thiết bị yếu. Ý chính là tách tích chập thường
+thành hai bước: depthwise lọc riêng từng kênh, rồi pointwise $1\times1$ trộn các kênh với nhau. Với
+bộ lọc $3\times3$, cách này giảm chi phí tính toán khoảng 8--9 lần. Mạng còn có thêm khối
+Squeeze-and-Excitation và hàm kích hoạt h-swish, và kiến trúc được tìm bằng tìm kiếm tự động.
 
 \subsection{Học chuyển giao}
 
-Các tầng đầu của mạng huấn luyện trên ImageNet học những thứ rất tổng quát --- biên, góc, đốm màu,
-hoạ tiết --- và những thứ này đúng với mọi ảnh tự nhiên, không riêng gì 1000 lớp của ImageNet. Vì
-vậy có thể giữ nguyên chúng và chỉ thay phần đầu ra. Báo cáo so sánh hai mức độ tái sử dụng:
+Các tầng đầu của mạng học trên ImageNet toàn những thứ rất chung như biên, góc, đốm màu, hoạ tiết.
+Những thứ này đúng với mọi ảnh tự nhiên chứ không riêng 1000 lớp của ImageNet, nên giữ nguyên được.
+Em thử hai mức tái sử dụng:
 
 \begin{itemize}
-  \item \textbf{Backbone đóng băng (linear probe).} Bỏ tầng phân lớp của ImageNet, dùng mạng như một
-        hàm trích đặc trưng cố định, rồi huấn luyện một bộ phân lớp tuyến tính (hồi quy logistic) lên
-        trên. Không một trọng số nào trong mạng thay đổi. Cách này trả lời câu hỏi: thông tin phân
-        biệt loài đã có sẵn trong biểu diễn ImageNet chưa?
-  \item \textbf{Tinh chỉnh (fine-tune).} Mở khoá khối tích chập cuối (\texttt{layer4} của ResNet18)
-        cùng tầng phân lớp mới, cho phép mạng điều chỉnh các đặc trưng bậc cao cho phù hợp với lá cây.
+  \item \emph{Đóng băng backbone.} Bỏ tầng phân lớp của ImageNet, coi mạng như một hàm trích đặc
+        trưng cố định, rồi huấn luyện hồi quy logistic lên trên. Không trọng số nào trong mạng thay
+        đổi. Cách này cho biết thông tin phân loài đã nằm sẵn trong biểu diễn ImageNet chưa.
+  \item \emph{Tinh chỉnh.} Mở khoá khối tích chập cuối cùng với tầng phân lớp mới, để mạng chỉnh lại
+        các đặc trưng bậc cao cho hợp với lá cây.
 \end{itemize}
 
-\section{Phương pháp thực nghiệm}
+\section{Cách làm}
 
-\subsection{Trích đặc trưng với backbone đóng băng}
+Với cách thứ nhất, em cho mỗi ảnh đi qua backbone một lần và lấy vectơ đặc trưng: 512 chiều với
+ResNet18, 576 với MobileNetV3, 4096 với VGG11. Cả 1907 vectơ được lưu lại nên các thí nghiệm sau chỉ
+làm việc trên ma trận đặc trưng, không phải đọc lại ảnh. Bộ phân lớp là hồi quy logistic đa lớp, có
+chuẩn hoá z-score đặt bên trong quy trình huấn luyện để nó chỉ được ước lượng trên phần huấn luyện
+của mỗi lần chia, tránh rò rỉ dữ liệu.
 
-Mỗi ảnh được đưa qua backbone một lần, thu được vectơ đặc trưng (512 chiều với ResNet18, 576 với
-MobileNetV3, 4096 với VGG11 lấy ở tầng kết nối đầy đủ thứ hai). Toàn bộ 1907 vectơ được lưu lại,
-nên các thí nghiệm sau chỉ làm việc trên ma trận đặc trưng thay vì đọc lại ảnh --- cùng nguyên tắc
-với bài tập trước, nơi bước trích đặc trưng tốn kém còn bước phân lớp gần như miễn phí.
+Khi tinh chỉnh, em chỉ mở khoá \texttt{layer4} và tầng phân lớp mới. Với 1430 ảnh huấn luyện mà mở
+khoá cả mạng thì chắc chắn quá khớp, chưa kể chạy trên CPU sẽ rất lâu. Em đặt hai tốc độ học khác
+nhau cho hai nhóm tham số: tầng phân lớp khởi tạo ngẫu nhiên nên cần bước lớn ($10^{-3}$), còn
+\texttt{layer4} vốn đã ở một nghiệm tốt nên chỉ cần bước nhỏ ($10^{-4}$). Nếu để chung một tốc độ
+học thì hoặc là phá hỏng khối đã học sẵn, hoặc là tầng phân lớp học quá chậm. Em dùng AdamW, hàm mất
+mát entropy chéo, chạy \epochs{} epoch, mỗi epoch khoảng \epochseconds{} giây trên CPU 16 luồng.
 
-Bộ phân lớp là hồi quy logistic đa lớp, có chuẩn hoá z-score đặt bên trong quy trình huấn luyện để
-chỉ được ước lượng trên phần huấn luyện của mỗi lần chia, tránh rò rỉ dữ liệu.
-
-\subsection{Tinh chỉnh ResNet18}
-
-Chỉ \texttt{layer4} và tầng phân lớp mới được huấn luyện; các tầng còn lại bị đóng băng. Với 1430
-ảnh huấn luyện, mở khoá toàn mạng sẽ dẫn tới quá khớp, và trên CPU cũng quá chậm.
-
-Hai tốc độ học khác nhau được dùng cho hai nhóm tham số: tầng phân lớp khởi tạo ngẫu nhiên nên cần
-bước lớn ($10^{-3}$), còn \texttt{layer4} xuất phát từ một nghiệm đã tốt nên chỉ cần bước nhỏ
-($10^{-4}$). Dùng chung một tốc độ học sẽ hoặc phá hỏng khối tiền huấn luyện, hoặc làm tầng phân lớp
-học quá chậm. Thuật toán tối ưu là AdamW, hàm mất mát là entropy chéo, \epochs{} epoch, mỗi epoch
-khoảng \epochseconds{} giây trên CPU 16 luồng.
-
-\textbf{Tăng cường dữ liệu} chỉ áp dụng cho tập huấn luyện, và được giữ ở mức vừa phải: lật ngang,
-lật dọc, xoay ngẫu nhiên tối đa $20^\circ$ (lấp nền trắng cho khớp nền Flavia), thay đổi nhẹ độ sáng
-và độ tương phản. Lá trên máy quét không có hướng chuẩn nên lật và xoay là phép biến đổi bảo toàn
-nhãn. Ngược lại, thay đổi màu bị giữ ở biên độ nhỏ vì màu sắc thực sự mang thông tin phân loài:
-bài tập trước đo được nhóm đặc trưng màu đóng góp hơn 11 điểm phần trăm. Biến dạng màu mạnh sẽ xoá
-mất tín hiệu chứ không tạo thêm tính bất biến hữu ích.
+Tăng cường dữ liệu em chỉ áp dụng cho tập huấn luyện và để ở mức nhẹ: lật ngang, lật dọc, xoay ngẫu
+nhiên tối đa $20^\circ$ với nền lấp trắng cho khớp nền Flavia, thay đổi chút ít độ sáng và độ tương
+phản. Lá đặt trên máy quét không có hướng chuẩn nên lật với xoay không làm sai nhãn. Riêng màu thì
+em không dám chỉnh mạnh, vì ở bài trước nhóm đặc trưng màu đóng góp tới hơn 11 điểm phần trăm. Làm
+méo màu nhiều sẽ xoá mất tín hiệu chứ chẳng thêm được tính bất biến nào có ích.
 
 \section{Kết quả}
 
-\subsection{So sánh ba backbone đóng băng}
+\subsection{Ba backbone đóng băng}
 
-Bảng~\ref{tab:backbones} trình bày kết quả. Điều đáng chú ý đầu tiên: \textbf{cả ba mạng đều vượt
-\classicalcv{} của quy trình đặc trưng thủ công, dù không một trọng số nào trong mạng được huấn
-luyện trên ảnh lá}. Biểu diễn học từ ImageNet đã đủ để tách 32 loài lá bằng một mặt phẳng tuyến tính.
+Kết quả ở Bảng~\ref{tab:backbones}. Thứ làm em bất ngờ nhất là cả ba mạng đều vượt \classicalcv{}
+của đặc trưng thủ công, trong khi không một trọng số nào trong mạng được huấn luyện trên ảnh lá.
+Biểu diễn học từ ImageNet đã đủ để tách 32 loài lá chỉ bằng một mặt phẳng tuyến tính.
 
 \input{generated/tables}
 
-\textbf{Số tham số không dự báo chất lượng biểu diễn.} \lightname{} chỉ có \lightparams{} triệu
-tham số, nhỏ hơn \heavyname{} \paramratio{} lần, nhưng đạt \lightcv{} so với \heavycv{}, đồng thời
-nhanh hơn 5 lần (\lightms{} ms so với \heavyms{} ms mỗi ảnh trên CPU). Kiến trúc hiện đại với tích
-chập tách được khai thác tham số hiệu quả hơn hẳn kiểu xếp chồng kết nối đầy đủ của VGG.
+Chuyện thứ hai là số tham số không nói lên chất lượng biểu diễn. \lightname{} chỉ có
+\lightparams{} triệu tham số, nhỏ hơn \heavyname{} tới \paramratio{} lần, vậy mà đạt \lightcv{} so
+với \heavycv{}, lại còn nhanh hơn 5 lần (\lightms{} ms so với \heavyms{} ms mỗi ảnh trên CPU). Kiến
+trúc mới với tích chập tách được dùng tham số hiệu quả hơn kiểu xếp chồng kết nối đầy đủ của VGG.
 
-Tuy nhiên, chênh lệch giữa các mạng rất nhỏ nên cần kiểm định trước khi xếp hạng. Kiểm định $t$ ghép
-cặp trên cùng các phần kiểm định chéo cho thấy \textbf{chỉ một cặp đạt ý nghĩa thống kê}:
-\probebestname{} hơn \probeworstname{} ($p = 0{,}035$). Hai cặp còn lại có $p = 0{,}15$--$0{,}18$,
-tức chưa đủ cơ sở kết luận mạng nào hơn. Đây là cùng kỷ luật đã rút ra ở bài tập trước: với mức
-chênh lệch dưới một điểm phần trăm, xếp hạng theo chữ số thập phân là diễn giải nhiễu.
+Có điều chênh lệch giữa ba mạng nhỏ quá nên em không dám xếp hạng vội. Kiểm định $t$ ghép cặp trên
+cùng các phần kiểm định chéo cho thấy chỉ một cặp đạt ý nghĩa thống kê là \probebestname{} hơn
+\probeworstname{} với $p = 0{,}035$. Hai cặp còn lại $p$ khoảng $0{,}15$--$0{,}18$, chưa đủ cơ sở
+kết luận. Đây là bài học em rút ra từ bài tập trước: chênh nhau dưới một điểm phần trăm thì xếp hạng
+theo chữ số thập phân chỉ là đang diễn giải nhiễu.
 
 \subsection{Tinh chỉnh}
 
-Hình~\ref{fig:curve} cho thấy quá trình huấn luyện. Ngay sau epoch đầu tiên, độ chính xác trên tập
-kiểm tra đã đạt \firstepochacc{} --- hệ quả trực tiếp của việc xuất phát từ trọng số ImageNet thay
-vì khởi tạo ngẫu nhiên. Mô hình tốt nhất xuất hiện ở epoch \bestepoch{} với \ftacc{}. Hàm mất mát
-trên tập kiểm tra giảm đều và không bật lên, nghĩa là với số epoch này mô hình chưa quá khớp.
+Hình~\ref{fig:curve} là quá trình huấn luyện. Ngay sau epoch đầu tiên độ chính xác trên tập kiểm tra
+đã là \firstepochacc{}, điều này đến từ việc xuất phát từ trọng số ImageNet chứ không phải khởi tạo
+ngẫu nhiên. Mô hình tốt nhất rơi vào epoch \bestepoch{} với \ftacc{}. Hàm mất mát trên tập kiểm tra
+giảm đều và không bật lên, nên với số epoch này mô hình chưa quá khớp.
 
 \begin{figure}[t]
   \centering
@@ -204,148 +189,146 @@ trên tập kiểm tra giảm đều và không bật lên, nghĩa là với s�
   \label{fig:curve}
 \end{figure}
 
-So với cùng mạng ở chế độ đóng băng (\probeacc{} trên cùng tập kiểm tra), tinh chỉnh nâng kết quả
-lên \ftacc{}. Cần thận trọng khi diễn giải: trên 477 ảnh, khoảng cách này tương ứng chỉ vài ảnh, nên
-nó cho thấy một xu hướng hợp lý chứ không phải một kết luận chắc chắn về mặt thống kê.
+So với chính mạng đó ở chế độ đóng băng (\probeacc{} trên cùng tập kiểm tra), tinh chỉnh nâng lên
+\ftacc{}. Nhưng trên 477 ảnh thì khoảng cách này chỉ tương ứng vài ảnh, nên em xem nó là một xu
+hướng hợp lý thôi, chưa phải kết luận chắc chắn.
 
 \subsection{Ma trận nhầm lẫn, precision và recall}
 
-Với \nclasses{} lớp có kích thước không đều, riêng độ chính xác tổng thể là chưa đủ: một loài nhỏ có
-thể bị sai toàn bộ mà con số tổng vẫn gần như không đổi. Vì vậy kết quả được báo cáo theo từng lớp.
+Với \nclasses{} lớp to nhỏ không đều thì nhìn mỗi độ chính xác tổng là chưa đủ. Một loài ít ảnh có
+thể sai sạch mà con số tổng vẫn gần như không nhúc nhích. Vì vậy em báo cáo theo từng lớp.
 
 Mô hình tinh chỉnh đạt macro precision \ftprecision{}, macro recall \ftrecall{} và macro F1
-\ftfone{}. \textbf{\ftperfect{}/\ftclasses{} loài đạt F1 bằng 1,00}, tức precision và recall đều
-tuyệt đối. Bảng~\ref{tab:perclass} liệt kê toàn bộ các loài còn lại, và Hình~\ref{fig:pr} biểu diễn
-precision cùng recall của mọi loài.
+\ftfone{}. Có \ftperfect{}/\ftclasses{} loài đạt F1 bằng 1,00, tức precision và recall đều tuyệt
+đối. Bảng~\ref{tab:perclass} liệt kê những loài còn lại, Hình~\ref{fig:pr} vẽ precision và recall
+của tất cả các loài.
 
 \begin{figure}[t]
   \centering
-  \includegraphics[width=0.78\linewidth]{precision_recall.png}
-  \caption{Precision và recall theo từng loài trên tập kiểm tra giữ lại, sắp xếp theo F1.}
+  \includegraphics[width=0.74\linewidth]{precision_recall.png}
+  \caption{Precision và recall theo từng loài trên tập kiểm tra giữ lại, sắp theo F1.}
   \label{fig:pr}
 \end{figure}
 
-Ma trận nhầm lẫn ở Hình~\ref{fig:confusion} cho thấy toàn bộ khối lượng nằm trên đường chéo, ngoại
-trừ đúng \fterrors{} ô: một ảnh \emph{Canadian poplar} bị nhận thành \emph{camphortree}. Chính cặp
-này cũng xuất hiện ở mô hình đóng băng, bên cạnh hai ảnh \emph{peach} bị nhận thành \emph{Anhui
-Barberry} mà việc tinh chỉnh đã sửa được. Với chỉ một mẫu sai, không thể kết luận gì về nguyên nhân;
-cần nhiều dữ liệu kiểm tra hơn mới nói được đây là nhầm lẫn có hệ thống hay chỉ là một ảnh biên.
+Trong ma trận nhầm lẫn ở Hình~\ref{fig:confusion}, gần như toàn bộ khối lượng nằm trên đường chéo,
+chỉ còn đúng \fterrors{} ô lệch ra: một ảnh \emph{Canadian poplar} bị nhận thành \emph{camphortree}.
+Cặp này cũng xuất hiện ở mô hình đóng băng, kèm theo hai ảnh \emph{peach} bị nhận thành \emph{Anhui
+Barberry} mà tinh chỉnh đã sửa được. Với đúng một mẫu sai thì em không kết luận gì về nguyên nhân;
+muốn biết đây là nhầm lẫn có hệ thống hay chỉ là một ảnh biên thì cần tập kiểm tra lớn hơn.
 
 \begin{figure}[t]
   \centering
-  \includegraphics[width=0.82\linewidth]{confusion.png}
-  \caption{Ma trận nhầm lẫn của mô hình ResNet18 tinh chỉnh trên 477 ảnh kiểm tra.}
+  \includegraphics[width=0.76\linewidth]{confusion.png}
+  \caption{Ma trận nhầm lẫn của ResNet18 tinh chỉnh trên 477 ảnh kiểm tra.}
   \label{fig:confusion}
 \end{figure}
 
-\section{Minh hoạ đặc trưng mà mạng học được}
+\section{Mạng học được những gì}
 
-Khác với đặc trưng thủ công --- nơi mỗi chiều có tên và công thức rõ ràng --- đặc trưng của CNN phải
-được quan sát gián tiếp. Bốn góc nhìn dưới đây trả lời bốn câu hỏi khác nhau.
+Ở bài trước mỗi đặc trưng đều có tên và công thức rõ ràng. Với CNN thì không, nên em phải nhìn gián
+tiếp qua bốn cách sau.
 
-\textbf{Bộ lọc tầng đầu tiên} (Hình~\ref{fig:filters}) là 64 nhân $7\times7\times3$ hiển thị dưới
-dạng ảnh màu. Có thể thấy rõ hai nhóm: các bộ lọc dò biên theo nhiều hướng (dạng sọc sáng tối) và
-các bộ lọc đối lập màu (xanh--đỏ, xanh--vàng). Đây là những đặc trưng rất tổng quát, lý do khiến
-tầng đầu có thể giữ nguyên khi chuyển sang bài toán lá cây.
+\emph{Bộ lọc tầng đầu tiên} (Hình~\ref{fig:filters}) gồm 64 nhân $7\times7\times3$, hiển thị được
+luôn dưới dạng ảnh màu. Nhìn vào thấy hai nhóm khá rõ: nhóm dò biên theo các hướng khác nhau, trông
+như những vệt sáng tối, và nhóm đối lập màu kiểu xanh--đỏ hay xanh--vàng. Toàn là thứ rất chung
+chung, và đó cũng là lý do tầng này giữ nguyên được khi chuyển sang bài toán lá cây.
 
 \begin{figure}[t]
   \centering
-  \begin{minipage}{0.36\linewidth}
+  \begin{minipage}{0.34\linewidth}
     \includegraphics[width=\linewidth]{filters.png}
   \end{minipage}\hfill
-  \begin{minipage}{0.62\linewidth}
+  \begin{minipage}{0.64\linewidth}
     \includegraphics[width=\linewidth]{feature_maps.png}
   \end{minipage}
-  \caption{Trái: 64 bộ lọc của tầng tích chập đầu tiên. Phải: bản đồ đặc trưng tương ứng trên một
-  chiếc lá thật --- mỗi kênh làm nổi bật một loại cấu trúc khác nhau (mép lá, gân chính, vùng phiến lá).}
+  \caption{Trái: 64 bộ lọc của tầng tích chập đầu tiên. Phải: các bộ lọc đó phản ứng thế nào trên
+  một chiếc lá thật, mỗi kênh làm nổi một loại cấu trúc khác nhau.}
   \label{fig:filters}
 \end{figure}
 
-\textbf{Bản đồ đặc trưng} cho thấy những bộ lọc đó phản ứng thế nào trên một ảnh cụ thể: một số kênh
-làm nổi mép lá, số khác làm nổi gân chính hoặc vùng phiến lá đồng nhất.
+\emph{Bản đồ đặc trưng} cho thấy các bộ lọc đó hoạt động ra sao trên một ảnh cụ thể. Có kênh làm nổi
+mép lá, có kênh làm nổi gân chính, có kênh thì phản ứng với vùng phiến lá đồng đều.
 
-\textbf{Grad-CAM}~\cite{selvaraju2017} (Hình~\ref{fig:gradcam}) trả lời câu hỏi quan trọng nhất về
-độ tin cậy: mạng dựa vào vùng nào để ra quyết định? Phương pháp lấy trọng số mỗi kênh của khối tích
-chập cuối bằng gradient của điểm số lớp dự đoán theo kênh đó, rồi cộng lại. Bản đồ thu được tập
-trung vào phiến lá và tắt dần ra nền, xác nhận mạng nhìn vào chiếc lá chứ không bám vào nền trắng
-hay một dấu vết nào của máy quét. Đây là kiểm tra cần thiết: với nền trắng đồng nhất, một mô hình
-vẫn có thể đạt độ chính xác cao nhờ học các manh mối giả.
+\emph{Grad-CAM}~\cite{selvaraju2017} (Hình~\ref{fig:gradcam}) là thứ em thấy cần nhất để yên tâm về
+mô hình, vì nó chỉ ra mạng dựa vào vùng nào khi quyết định. Cách tính là lấy gradient của điểm số
+lớp dự đoán theo từng kênh của khối tích chập cuối, dùng nó làm trọng số cho kênh đó rồi cộng lại.
+Bản đồ thu được nằm gọn trong phiến lá và nhạt dần ra nền, tức mạng nhìn vào lá thật. Em kiểm tra
+điều này vì nền Flavia trắng trơn và đồng nhất, mô hình hoàn toàn có thể đạt điểm cao nhờ bám vào
+một manh mối giả nào đó của máy quét thay vì nhìn lá.
 
 \begin{figure}[t]
   \centering
-  \includegraphics[width=\linewidth]{gradcam.png}
+  \includegraphics[width=0.94\linewidth]{gradcam.png}
   \caption{Grad-CAM trên ảnh 1083. Vùng nóng nằm trọn trong phiến lá.}
   \label{fig:gradcam}
 \end{figure}
 
-\textbf{t-SNE}~\cite{maaten2008} (Hình~\ref{fig:tsne}) chiếu embedding 512 chiều của backbone đóng
-băng xuống hai chiều. Các loài tách thành những cụm rời rạc \emph{trước khi} có bất kỳ bộ phân lớp
-nào. Đây là lời giải thích trực quan cho kết quả ở Bảng~\ref{tab:backbones}: bộ phân lớp tuyến tính
-đạt gần 100\% vì công việc khó đã được backbone làm xong.
+\emph{t-SNE}~\cite{maaten2008} (Hình~\ref{fig:tsne}) chiếu embedding 512 chiều của backbone đóng
+băng xuống hai chiều. Các loài đã tách thành từng cụm riêng trước khi có bất kỳ bộ phân lớp nào. Đây
+chính là lý do bộ phân lớp tuyến tính ở Bảng~\ref{tab:backbones} đạt gần 100\%: phần khó đã được
+backbone làm xong rồi.
 
-So sánh với bài tập trước rất đáng chú ý: ở đó, phép chiếu hai chiều bằng PCA hay LDA đều \emph{không}
-tách được các lớp, vì thông tin phân biệt nằm rải rác ở nhiều chiều. Với embedding của CNN, cấu trúc
-cụm hiện rõ ngay trên hai chiều.
+Chỗ này so với bài trước khá thú vị. Ở bài trước, chiếu hai chiều bằng PCA hay LDA đều không tách
+được các lớp, vì thông tin phân biệt nằm rải ở nhiều chiều. Còn với embedding của CNN thì cấu trúc
+cụm hiện ra ngay trên hai chiều.
 
 \begin{figure}[t]
   \centering
-  \includegraphics[width=0.68\linewidth]{tsne.png}
-  \caption{t-SNE của embedding ResNet18 đóng băng; mỗi màu là một loài.}
+  \includegraphics[width=0.62\linewidth]{tsne.png}
+  \caption{t-SNE của embedding ResNet18 đóng băng, mỗi màu là một loài.}
   \label{fig:tsne}
 \end{figure}
 
-\section{Thảo luận: CNN so với đặc trưng thủ công}
+\section{So sánh với cách làm ở bài trước}
 
-Bảng~\ref{tab:comparison} đặt hai cách tiếp cận cạnh nhau. CNN thắng về độ chính xác, nhưng bức
-tranh đầy đủ có nhiều chiều hơn một con số.
+Bảng~\ref{tab:comparison} đặt hai cách cạnh nhau. CNN thắng về độ chính xác, nhưng nếu nhìn rộng hơn
+một con số thì mỗi bên có chỗ mạnh riêng.
 
-\textbf{Công sức thiết kế.} Quy trình thủ công cần bốn nhóm đặc trưng được thiết kế riêng, cộng với
-một bước phân đoạn mà bài tập trước đo được là có lỗi cục bộ trên các lá có mặt dưới nhạt màu. Quy
-trình CNN không cần bước nào trong số đó.
+Về công sức, cách thủ công cần bốn nhóm đặc trưng tự thiết kế, cộng thêm bước phân đoạn mà ở bài
+trước em đo được là có lỗi cục bộ với những chiếc lá có mặt dưới nhạt màu. Quy trình CNN bỏ được hết
+các bước đó.
 
-\textbf{Khả năng giải thích.} Ở chiều ngược lại, đặc trưng thủ công có thể nói chính xác vì sao mô
-hình quyết định: bài tập trước định lượng được rằng \emph{smooth factor} là đặc trưng quan trọng
-nhất, và đo được mức độ chồng lấn thông tin giữa nhóm màu và nhóm kết cấu. Với CNN, câu trả lời
-tương đương chỉ có thể tiếp cận gián tiếp qua Grad-CAM.
+Đổi lại, đặc trưng thủ công giải thích được rõ ràng hơn nhiều. Ở bài trước em chỉ ra được
+\emph{smooth factor} là đặc trưng quan trọng nhất, và đo được mức chồng lấn thông tin giữa nhóm màu
+với nhóm kết cấu. Với CNN thì câu trả lời tương đương chỉ có thể tiếp cận gián tiếp qua Grad-CAM.
 
-\textbf{Chi phí tính toán.} Trích đặc trưng thủ công mất khoảng 0,27 giây mỗi ảnh trên CPU, trong
-khi MobileNetV3 chỉ mất \lightms{} mili giây --- CNN hiện đại thực ra \emph{nhanh hơn} quy trình thủ
-công, vì phép phân đoạn và các phép hình thái học trên ảnh $1600\times1200$ khá tốn kém. Bù lại, CNN
-cần tải về trọng số tiền huấn luyện và phụ thuộc vào một khung học sâu~\cite{paszke2019}.
+Về tốc độ, em hơi bất ngờ: trích đặc trưng thủ công mất khoảng 0,27 giây mỗi ảnh trên CPU, còn
+MobileNetV3 chỉ mất \lightms{} mili giây. Hoá ra CNN hiện đại lại nhanh hơn, vì phân đoạn và các
+phép hình thái học trên ảnh $1600\times1200$ khá tốn kém. Bù lại CNN phải tải trọng số tiền huấn
+luyện và phụ thuộc vào một khung học sâu~\cite{paszke2019}.
 
-\textbf{Tính bền vững.} Bài tập trước chỉ ra tổ hợp đặc trưng thủ công tốt nhất lại rất dễ vỡ khi
-ảnh bị nhiễu hoặc che khuất. Báo cáo này chưa lặp lại thí nghiệm đó cho CNN, nên không thể khẳng
-định bên nào bền hơn; đó là hướng cần làm tiếp.
+Còn về độ bền thì em chưa trả lời được. Bài trước cho thấy tổ hợp đặc trưng thủ công tốt nhất lại
+rất dễ vỡ khi ảnh bị nhiễu hay che khuất, nhưng em chưa kịp lặp lại thí nghiệm đó cho CNN, nên không
+khẳng định được bên nào bền hơn.
 
 \section{Hạn chế}
 
 \begin{itemize}
-  \item Độ chính xác đã chạm trần của bộ dữ liệu: \ftacc{} tương ứng \fterrors{} ảnh sai trên 477.
-        Ở mức này, mọi so sánh giữa các cấu hình đều nằm trong vùng nhiễu thống kê, và Flavia không
-        còn đủ khó để phân biệt các phương pháp.
-  \item Cấu hình tinh chỉnh chỉ được đánh giá trên một phép chia giữ lại, không chạy kiểm định chéo
-        đầy đủ vì chi phí tính toán trên CPU.
-  \item Siêu tham số (tốc độ học, số epoch, mức độ mở khoá) được chọn theo kinh nghiệm, chưa qua tìm
-        kiếm có hệ thống.
-  \item Chưa thử kiến trúc Transformer thị giác, vốn cần nhiều dữ liệu hơn hoặc kỹ thuật huấn luyện
-        riêng để phát huy trên tập nhỏ như Flavia.
+  \item Độ chính xác đã chạm trần của bộ dữ liệu. \ftacc{} nghĩa là sai \fterrors{} ảnh trên 477, ở
+        mức này mọi so sánh giữa các cấu hình đều nằm trong vùng nhiễu, và Flavia không còn đủ khó
+        để phân biệt các phương pháp.
+  \item Phần tinh chỉnh em chỉ đánh giá trên một phép chia giữ lại, chưa chạy kiểm định chéo đầy đủ
+        vì chạy trên CPU khá lâu.
+  \item Các siêu tham số như tốc độ học, số epoch, mức mở khoá đều do em chọn theo kinh nghiệm, chưa
+        tìm kiếm có hệ thống.
+  \item Em chưa thử Transformer thị giác. Kiến trúc này cần nhiều dữ liệu hơn hoặc kỹ thuật huấn
+        luyện riêng mới phát huy được trên tập nhỏ như Flavia.
 \end{itemize}
 
 \section{Kết luận}
 
-Học chuyển giao giải bài toán Flavia tốt hơn quy trình đặc trưng thủ công với công sức thiết kế ít
-hơn hẳn: \probebestname{} đóng băng đạt \probebestcv{} và ResNet18 tinh chỉnh đạt \ftacc{} trên tập
-kiểm tra giữ lại, so với \classicalcv{} của bài tập trước.
+Học chuyển giao giải bài toán Flavia tốt hơn cách làm thủ công mà công sức bỏ ra lại ít hơn nhiều:
+\probebestname{} đóng băng đạt \probebestcv{}, ResNet18 tinh chỉnh đạt \ftacc{} trên tập kiểm tra
+giữ lại, so với \classicalcv{} của bài trước.
 
-Kết quả có ý nghĩa nhất không phải con số cao nhất, mà là \emph{phần lớn thành tích đến từ trước khi
-huấn luyện}. Một bộ phân lớp tuyến tính trên đặc trưng ImageNet đóng băng đã vượt toàn bộ quy trình
-thủ công, và hình t-SNE cho thấy lý do: các loài đã tách thành cụm ngay trong không gian embedding.
-Việc tinh chỉnh chỉ thêm được một phần nhỏ. Với một bộ dữ liệu 1907 ảnh, giá trị của học sâu nằm ở
-biểu diễn được chuyển giao từ dữ liệu lớn, chứ không nằm ở việc huấn luyện trên chính bộ dữ liệu nhỏ đó.
+Nhưng điều em thấy đáng nhớ nhất không phải con số cao nhất, mà là phần lớn kết quả đã có từ trước
+khi huấn luyện. Chỉ một bộ phân lớp tuyến tính đặt trên đặc trưng ImageNet đóng băng đã vượt cả quy
+trình thủ công, và hình t-SNE cho thấy lý do: các loài đã tụ thành cụm sẵn trong không gian
+embedding. Tinh chỉnh chỉ thêm được một phần nhỏ. Với bộ dữ liệu 1907 ảnh, cái quý của học sâu nằm ở
+biểu diễn chuyển giao từ dữ liệu lớn, chứ không nằm ở việc huấn luyện trên chính bộ dữ liệu nhỏ này.
 
-Quan sát thứ hai là số tham số không phải chỉ dấu của chất lượng: \lightname{} nhỏ hơn \heavyname{}
-\paramratio{} lần nhưng cho kết quả cao hơn và nhanh hơn 5 lần, đủ nhẹ để triển khai trên thiết bị
-di động.
+Điều thứ hai là số tham số không phải chỉ dấu của chất lượng. \lightname{} nhỏ hơn \heavyname{}
+\paramratio{} lần nhưng cho kết quả cao hơn và chạy nhanh hơn 5 lần, đủ nhẹ để đưa lên điện thoại.
 
 \begin{thebibliography}{99}
 
