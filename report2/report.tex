@@ -182,9 +182,9 @@ Hình~\ref{fig:curve} là quá trình huấn luyện. Ngay sau epoch đầu tiê
 ngẫu nhiên. Mô hình tốt nhất rơi vào epoch \bestepoch{} với \ftacc{}. Hàm mất mát trên tập kiểm tra
 giảm đều và không bật lên, nên với số epoch này mô hình chưa quá khớp.
 
-\begin{figure}[t]
+\begin{figure}[H]
   \centering
-  \includegraphics[width=\linewidth]{training_curve.png}
+  \includegraphics[width=0.92\linewidth]{training_curve.png}
   \caption{Quá trình tinh chỉnh ResNet18 qua \epochs{} epoch.}
   \label{fig:curve}
 \end{figure}
@@ -203,9 +203,9 @@ Mô hình tinh chỉnh đạt macro precision \ftprecision{}, macro recall \ftre
 đối. Bảng~\ref{tab:perclass} liệt kê những loài còn lại, Hình~\ref{fig:pr} vẽ precision và recall
 của tất cả các loài.
 
-\begin{figure}[t]
+\begin{figure}[H]
   \centering
-  \includegraphics[width=0.74\linewidth]{precision_recall.png}
+  \includegraphics[width=0.62\linewidth]{precision_recall.png}
   \caption{Precision và recall theo từng loài trên tập kiểm tra giữ lại, sắp theo F1.}
   \label{fig:pr}
 \end{figure}
@@ -216,9 +216,9 @@ Cặp này cũng xuất hiện ở mô hình đóng băng, kèm theo hai ảnh \
 Barberry} mà tinh chỉnh đã sửa được. Với đúng một mẫu sai thì em không kết luận gì về nguyên nhân;
 muốn biết đây là nhầm lẫn có hệ thống hay chỉ là một ảnh biên thì cần tập kiểm tra lớn hơn.
 
-\begin{figure}[t]
+\begin{figure}[H]
   \centering
-  \includegraphics[width=0.76\linewidth]{confusion.png}
+  \includegraphics[width=0.64\linewidth]{confusion.png}
   \caption{Ma trận nhầm lẫn của ResNet18 tinh chỉnh trên 477 ảnh kiểm tra.}
   \label{fig:confusion}
 \end{figure}
@@ -233,7 +233,7 @@ luôn dưới dạng ảnh màu. Nhìn vào thấy hai nhóm khá rõ: nhóm dò
 như những vệt sáng tối, và nhóm đối lập màu kiểu xanh--đỏ hay xanh--vàng. Toàn là thứ rất chung
 chung, và đó cũng là lý do tầng này giữ nguyên được khi chuyển sang bài toán lá cây.
 
-\begin{figure}[t]
+\begin{figure}[H]
   \centering
   \begin{minipage}{0.34\linewidth}
     \includegraphics[width=\linewidth]{filters.png}
@@ -256,9 +256,9 @@ Bản đồ thu được nằm gọn trong phiến lá và nhạt dần ra nền
 điều này vì nền Flavia trắng trơn và đồng nhất, mô hình hoàn toàn có thể đạt điểm cao nhờ bám vào
 một manh mối giả nào đó của máy quét thay vì nhìn lá.
 
-\begin{figure}[t]
+\begin{figure}[H]
   \centering
-  \includegraphics[width=0.94\linewidth]{gradcam.png}
+  \includegraphics[width=0.88\linewidth]{gradcam.png}
   \caption{Grad-CAM trên ảnh 1083. Vùng nóng nằm trọn trong phiến lá.}
   \label{fig:gradcam}
 \end{figure}
@@ -272,9 +272,9 @@ Chỗ này so với bài trước khá thú vị. Ở bài trước, chiếu hai
 được các lớp, vì thông tin phân biệt nằm rải ở nhiều chiều. Còn với embedding của CNN thì cấu trúc
 cụm hiện ra ngay trên hai chiều.
 
-\begin{figure}[t]
+\begin{figure}[H]
   \centering
-  \includegraphics[width=0.62\linewidth]{tsne.png}
+  \includegraphics[width=0.52\linewidth]{tsne.png}
   \caption{t-SNE của embedding ResNet18 đóng băng, mỗi màu là một loài.}
   \label{fig:tsne}
 \end{figure}
