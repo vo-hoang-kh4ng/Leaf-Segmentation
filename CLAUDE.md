@@ -177,6 +177,16 @@ shape features failing to be rotation-invariant. Any new transform needs its own
 `src.cnn.record` starts ffmpeg (gdigrab), runs the walkthrough with `--auto`, then stops ffmpeg by
 sending "q" on stdin. Never kill ffmpeg instead: the MP4 loses its moov atom and will not play.
 
+The walkthrough runs in the console that launched the recorder, so the recorder must be started from
+a terminal the camera can see. A tool-driven shell cannot help here: `CREATE_NEW_CONSOLE` from such a
+session produces no visible window at all (verified -- `EnumWindows` never sees it), so the student has
+to run `python -m src.cnn.record` themselves. `--new-console` exists for interactive sessions only.
+
+Window capture (`-i title=...`) is useless for VS Code, Chrome or any GPU-accelerated window: gdigrab
+reads the window's GDI surface, which those apps never draw into, and every frame comes out pure black
+(measured: 100% of pixels below 8/255). Capture the screen *region* instead -- but then whatever sits
+on top of that rectangle is what gets filmed, so raise the window first.
+
 gdigrab's "desktop" input grabs every monitor side by side -- 6400x2236 on this two-screen machine,
 which buries the terminal in a wide strip. The script captures the primary monitor only (offset 0,0,
 `GetSystemMetrics(0/1)` after `SetProcessDPIAware`) and scales to 1920 wide; about 21 MB for a

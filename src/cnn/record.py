@@ -46,10 +46,102 @@ def primary_monitor() -> tuple[int, int]:
     return user32.GetSystemMetrics(0), user32.GetSystemMetrics(1)
 
 
+def raise_window(title_fragment: str, maximise: bool = False) -> bool:
+    """Bring a window to the front so the screen capture actually shows it.
+
+    Region capture records whatever is on top of that rectangle, so a window left
+    behind another one is simply not in the video.
+    """
+    import ctypes
+    from ctypes import wintypes
+
+    user32 = ctypes.windll.user32
+    found: list[int] = []
+
+    @ctypes.WINFUNCTYPE(ctypes.c_bool, wintypes.HWND, wintypes.LPARAM)
+    def visit(handle, _param):
+        if user32.IsWindowVisible(handle):
+            length = user32.GetWindowTextLengthW(handle)
+            if length:
+                buffer = ctypes.create_unicode_buffer(length + 1)
+                user32.GetWindowTextW(handle, buffer, length + 1)
+                if title_fragment.lower() in buffer.value.lower():
+                    found.append(handle)
+                    return False
+        return True
+
+    user32.EnumWindows(visit, 0)
+    if not found:
+        return False
+    user32.ShowWindow(found[0], 3 if maximise else 9)  # SW_MAXIMIZE / SW_RESTORE
+    user32.SetForegroundWindow(found[0])
+    return True
+
+
+def launch_demo_console(auto: float, no_open: bool, title: str) -> subprocess.Popen:
+    """Run the walkthrough in its own visible console window.
+
+    Running it as an ordinary child process would send the output to whatever console
+    started the recorder -- which is not on screen when the recorder is driven by a
+    tool or a script. A new console is a real window, so it can be filmed.
+    """
+    inner = f'{Path(sys.executable).name} -m src.cnn.walkthrough --auto {auto}'
+    if no_open:
+        inner += " --no-open"
+    command = f'title {title} && mode con: cols=130 lines=42 && {inner} && timeout /t 5'
+    return subprocess.Popen(["cmd", "/c", command], cwd=ROOT,
+                            env=dict(os.environ, PYTHONIOENCODING="utf-8"),
+                            creationflags=subprocess.CREATE_NEW_CONSOLE)
+
+
+def window_region(title_fragment: str) -> tuple[int, int, int, int]:
+    """Screen rectangle (x, y, w, h) of the first visible window matching the title.
+
+    Capturing the *region* rather than the window itself is deliberate: gdigrab's
+    `title=` input returns pure black for GPU-accelerated windows such as VS Code or
+    Chrome, because it reads the window's GDI surface and those apps never draw into
+    it. Grabbing the same rectangle off the composited desktop works.
+    """
+    import ctypes
+    from ctypes import wintypes
+
+    user32 = ctypes.windll.user32
+    user32.SetProcessDPIAware()
+    found: list[int] = []
+
+    @ctypes.WINFUNCTYPE(ctypes.c_bool, wintypes.HWND, wintypes.LPARAM)
+    def visit(handle, _param):
+        if not user32.IsWindowVisible(handle):
+            return True
+        length = user32.GetWindowTextLengthW(handle)
+        if length:
+            buffer = ctypes.create_unicode_buffer(length + 1)
+            user32.GetWindowTextW(handle, buffer, length + 1)
+            if title_fragment.lower() in buffer.value.lower():
+                found.append(handle)
+                return False
+        return True
+
+    user32.EnumWindows(visit, 0)
+    if not found:
+        raise SystemExit(f"không tìm thấy cửa sổ nào có tên chứa {title_fragment!r}")
+
+    rect = wintypes.RECT()
+    user32.GetWindowRect(found[0], ctypes.byref(rect))
+    # Even offsets and sizes: libx264 needs even dimensions, and an odd offset shifts
+    # the chroma plane.
+    x, y = max(0, rect.left) // 2 * 2, max(0, rect.top) // 2 * 2
+    return x, y, (rect.right - x) // 2 * 2, (rect.bottom - y) // 2 * 2
+
+
 def ffmpeg_command(out: Path, fps: int, crf: int, full_desktop: bool = False,
-                   scale_width: int = 1920) -> list[str]:
+                   scale_width: int = 1920, window: str | None = None) -> list[str]:
     capture = ["-i", "desktop"]
-    if not full_desktop and sys.platform == "win32":
+    if window:
+        x, y, width, height = window_region(window)
+        capture = ["-offset_x", str(x), "-offset_y", str(y),
+                   "-video_size", f"{width}x{height}", "-i", "desktop"]
+    elif not full_desktop and sys.platform == "win32":
         width, height = primary_monitor()
         capture = ["-offset_x", "0", "-offset_y", "0",
                    "-video_size", f"{width}x{height}", "-i", "desktop"]
@@ -90,7 +182,9 @@ def main() -> int:
     ap.add_argument("--no-open", action="store_true", help="không mở cửa sổ ảnh")
     ap.add_argument("--full-desktop", action="store_true",
                     help="quay tất cả màn hình thay vì chỉ màn hình chính")
-    ap.add_argument("--scale-width", type=int, default=1920,
+    ap.add_argument("--new-console", action="store_true",
+                    help="chạy demo trong cửa sổ console riêng thay vì terminal hiện tại")
+    ap.add_argument("--scale-width", type=int, default=2560,
                     help="thu video về chiều rộng này (0 = giữ nguyên độ phân giải)")
     args = ap.parse_args()
 
@@ -107,7 +201,7 @@ def main() -> int:
     print(f"\n{BOLD}QUAY VIDEO DEMO BÀI TẬP 2{RESET}")
     print(f" Ghi ra: {args.out}")
     print(f" Vùng quay: {area}" + (f", thu về rộng {args.scale_width}px" if args.scale_width else ""))
-    print(f" {DIM}Phóng to cửa sổ terminal này ngay bây giờ. Toàn màn hình sẽ được ghi lại.{RESET}")
+    print(f" {DIM}Phóng to terminal này và tăng cỡ chữ (Ctrl + lăn chuột) trước khi bắt đầu.{RESET}")
     for remaining in range(args.countdown, 0, -1):
         print(f" Bắt đầu sau {remaining}...", end="\r", flush=True)
         time.sleep(1)
@@ -115,18 +209,33 @@ def main() -> int:
 
     command = ffmpeg_command(args.out, args.fps, args.crf, args.full_desktop,
                              args.scale_width)
+    # By default the walkthrough runs in THIS console, so whatever terminal you launched
+    # the recorder from is what gets filmed. `--new-console` opens a separate window
+    # instead; that only works from an interactive session, not from a tool-driven shell
+    # (there, CREATE_NEW_CONSOLE produces no visible window at all).
+    demo = None
+    if args.new_console:
+        console_title = "DEMO-BAI-TAP-2"
+        demo = launch_demo_console(args.auto, args.no_open, console_title)
+        time.sleep(2.5)
+        if not raise_window(console_title):
+            print(f"{DIM}(không thấy cửa sổ demo; hãy bỏ --new-console và chạy trực tiếp){RESET}")
+
     recorder = subprocess.Popen(command, stdin=subprocess.PIPE,
                                 stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
     time.sleep(1.5)  # let ffmpeg open the capture before anything happens on screen
     print(f"{CYAN}● ĐANG QUAY{RESET}\n", flush=True)
 
-    walkthrough = ["src.cnn.walkthrough", "--auto", str(args.auto)]
-    if args.no_open:
-        walkthrough.append("--no-open")
     started = time.time()
     try:
-        subprocess.run([sys.executable, "-m", *walkthrough], cwd=ROOT,
-                       env=dict(os.environ, PYTHONIOENCODING="utf-8"), check=False)
+        if demo is not None:
+            demo.wait()
+        else:
+            walkthrough = ["src.cnn.walkthrough", "--auto", str(args.auto)]
+            if args.no_open:
+                walkthrough.append("--no-open")
+            subprocess.run([sys.executable, "-m", *walkthrough], cwd=ROOT,
+                           env=dict(os.environ, PYTHONIOENCODING="utf-8"), check=False)
     finally:
         time.sleep(2)  # a beat on the last screen so it is readable in the video
         # "q", not kill: ffmpeg must finalise the MP4 container itself.
