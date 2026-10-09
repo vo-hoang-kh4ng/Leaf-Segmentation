@@ -21,3 +21,6 @@ report2/build/*
 # docx generator dependencies (npm install docx in report2/ to regenerate the Word file)
 report2/node_modules/
 report2/package-lock.json
+
+# recorded demo videos
+results/*.mp4

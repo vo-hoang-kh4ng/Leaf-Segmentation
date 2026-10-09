@@ -66,6 +66,7 @@ python -m src.cnn.evaluate --source finetune|probe    # confusion matrix + preci
 python -m src.cnn.visualise           # filters, feature maps, Grad-CAM, t-SNE -> results/cnn_*.png
 python report2/build.py               # -> report2/build/report.pdf
 python -m src.cnn.walkthrough [--auto SEC] [--no-open]  # demo video script; ~2 min of compute
+python -m src.cnn.record [--auto SEC] [--scale-width PX]  # ffmpeg screen capture + walkthrough -> mp4
 ```
 
 `src.cnn.finetune` writes to `results/` by default; anything that re-runs it for show (the
@@ -170,6 +171,16 @@ held-out accuracy (0.9895) or the re-extraction path is broken and every drop is
 A transform can itself be buggy and the identity control will not catch it. Rotation originally kept
 the canvas size and clipped 83% of leaves (median 4.2% of leaf area), which looked exactly like
 shape features failing to be rotation-invariant. Any new transform needs its own sanity check.
+
+## Recording the demo video
+
+`src.cnn.record` starts ffmpeg (gdigrab), runs the walkthrough with `--auto`, then stops ffmpeg by
+sending "q" on stdin. Never kill ffmpeg instead: the MP4 loses its moov atom and will not play.
+
+gdigrab's "desktop" input grabs every monitor side by side -- 6400x2236 on this two-screen machine,
+which buries the terminal in a wide strip. The script captures the primary monitor only (offset 0,0,
+`GetSystemMetrics(0/1)` after `SetProcessDPIAware`) and scales to 1920 wide; about 21 MB for a
+3-minute run. `--full-desktop` restores the old behaviour.
 
 ## CNN findings (assignment 2)
 

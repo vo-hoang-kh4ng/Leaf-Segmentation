@@ -78,6 +78,7 @@ python -m src.cnn.evaluate --source finetune   # confusion matrix, precision, re
 python -m src.cnn.visualise      # first-layer filters, feature maps, Grad-CAM, t-SNE
 python report2/build.py          # -> report2/build/report.pdf
 python -m src.cnn.walkthrough    # scripted demo for the video
+python -m src.cnn.record         # record that walkthrough to results/demo_bai2.mp4 (needs ffmpeg)
 ```
 
 CPU-only (torch 2.13+cpu). Frozen ImageNet features with a linear classifier already reach
