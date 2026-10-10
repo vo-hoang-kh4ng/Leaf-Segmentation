@@ -5,3 +5,8 @@ scikit-learn>=1.4
 scipy>=1.11
 pandas>=2.1
 matplotlib>=3.8
+
+# Bài tập 2 (CNN). Bản CPU, cài bằng:
+#   pip install torch torchvision --index-url https://download.pytorch.org/whl/cpu
+torch>=2.2
+torchvision>=0.17
