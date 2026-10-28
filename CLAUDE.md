@@ -2,20 +2,72 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Two assignments, one dataset
+## Three assignments in one repository
 
-**Assignment 1** (`src/`, `report/`): hand-crafted features + classical classifiers. Done, submitted.
-**Assignment 2** (`src/cnn/`, `report2/`): the same problem solved with CNNs — due 07/10/2026.
+| | Code | Report | Task | Status |
+|---|---|---|---|---|
+| 1 | `src/` | `report/` | Flavia leaves, hand-crafted features + classical classifiers | submitted |
+| 2 | `src/cnn/` | `report2/` | same problem with CNNs (transfer learning) | submitted |
+| 3 | `src/yolo/` *(not built yet)* | `report3/` *(not built yet)* | **object detection with Ultralytics YOLO** | due ~18/11/2026 |
 
-The "no deep learning" rule below applies to assignment 1 only; assignment 2 requires CNNs
-(AlexNet/VGG/ResNet/MobileNet or ViT) and explicitly requires the report to illustrate the features,
-the confusion matrix, precision and recall with figures.
+Each assignment is its own classification problem; only 1 and 2 share data. The "no deep learning"
+rule stated under Assignment 1 applies to that assignment alone.
 
-**The binding rule across both:** `src/cnn/data.py` reuses assignment 1's image order, stratified
+**Binding rule between 1 and 2:** `src/cnn/data.py` reuses assignment 1's image order, stratified
 split and `RANDOM_STATE`, so CNN numbers sit in the same table as the 98.85%. Change the split and
-every comparison in report2 becomes meaningless.
+every comparison in report2 becomes meaningless. Assignment 3 shares nothing with them but the
+report-building machinery.
 
-## Project
+## Assignment 3 — Ultralytics YOLO (current work)
+
+Given 28/10/2026 with a three-week window. Requirements as stated by the lecturer:
+
+- Object detection with [Ultralytics](https://github.com/ultralytics/ultralytics). The student
+  **prefers an existing dataset** over labelling their own; self-built is allowed at ~100 annotated
+  samples (Roboflow or LabelMe).
+- **Three model sizes of the same YOLO version, minimum `n`, `s`, `m`** — the comparison is the point,
+  so the training protocol (epochs, imgsz, batch, seed, split) must be identical across the three or
+  the table means nothing. Same discipline as assignment 2's backbone comparison.
+- Transfer learning from Ultralytics' pretrained checkpoints, not training from scratch.
+- Submission: dataset link + description in the report, the **training configuration code only** (not
+  a copy of the YOLO source), and figures evidencing training — mAP and loss curves.
+
+**The hard constraint is compute.** This machine has no GPU (`torch.cuda.is_available()` is False,
+torch 2.13+cpu, 8 threads), and YOLO training is far heavier than assignment 2's fine-tune. Budget
+before choosing a dataset: `m` costs roughly an order of magnitude more than `n` per epoch, and the
+run has to happen three times. Keep the dataset small (a few hundred images), consider `imgsz=416`
+rather than 640, and measure one epoch before committing to a full schedule. `ultralytics` is not
+installed yet.
+
+Ultralytics writes its own metrics: `runs/detect/<name>/results.csv` plus `results.png`,
+`confusion_matrix.png` and the PR/F1 curves. Those files are the evidence the assignment asks for —
+read them rather than re-plotting from scratch, and keep `runs/` out of git.
+
+**Dataset: African Wildlife** (`african-wildlife.yaml`, ships with Ultralytics, auto-downloads,
+100 MB). 4 classes — buffalo, elephant, rhino, zebra — and a ready train/val/test split:
+
+| split | images | labels | boxes |
+|---|---|---|---|
+| train | 1052 | 1052 | 1931 |
+| val | 225 | 225 | 379 |
+| test | 227 | 227 | 375 |
+
+Boxes per class are reasonably balanced (399–575 in train), and the public page
+(`docs.ultralytics.com/datasets/detect/african-wildlife/`) is the link the report must cite. Chosen
+because it is ready-made, small enough for CPU training, and has a separate test split so the final
+numbers are not read off the split that drove early stopping.
+
+Ultralytics stores its paths in a global settings file, not in the repo. Both were pointed at this
+project (`datasets_dir` -> `D:\kh4ng\CV\datasets`, `runs_dir` -> `D:\kh4ng\CV\runs`); `runs_dir`
+had been left pointing at an unrelated project, so check it before a long run or the output lands
+somewhere else entirely.
+
+Timing anything with `model.train()` end-to-end is misleading: Ultralytics always runs a final
+validation pass (whatever `val=` says) plus warm-up, which on a short run dominates. The first
+measurement here read 6.5 min/epoch when the training pass was under 3. `src/yolo/benchmark.py`
+brackets the epoch with `on_train_epoch_start`/`on_train_epoch_end` callbacks instead.
+
+## Assignment 1 brief
 
 Individual coursework (Computer Vision): **leaf classification on the Flavia dataset** using classical
 hand-crafted features + a classical classifier — no deep learning.
@@ -72,6 +124,12 @@ python -m src.cnn.record [--auto SEC] [--scale-width PX]  # ffmpeg screen captur
 `src.cnn.finetune` writes to `results/` by default; anything that re-runs it for show (the
 walkthrough) must redirect `--out` and `--checkpoint` to a temp dir or it destroys the 6-epoch run
 the report's confusion matrix is built from.
+
+`src.cnn.linear_probe` rewrites `results/cnn_linear_probe.csv` on every run, and two of its columns
+are wall-clock timings (`embed_ms_per_image`, `probe_seconds`). Accuracies are deterministic, those
+are not — so a demo run shows up as a git diff, and rebuilding report2 afterwards shifts the ms/image
+figures quoted in it (MobileNetV3 moved 10.6 -> 11.3 after one such run). Harmless, but do not treat a
+diff in that file as a change in results.
 
 `src.experiments` builds the cache itself when it is missing. **After editing any feature extractor you must
 pass `--force`** to `src.dataset`, otherwise every experiment silently keeps scoring the old matrix.
@@ -135,7 +193,12 @@ into one cached matrix; `dataset.columns_for` then slices column subsets per exp
 ## Environment
 
 System Python is 3.14 and the whole stack installs on it (numpy 2.4, opencv 5.0, scikit-image 0.26,
-scikit-learn 1.8): `python -m pip install -r requirements.txt`. No virtualenv is in use.
+scikit-learn 1.8, torch 2.13+cpu): `python -m pip install -r requirements.txt`. No virtualenv is in
+use. `ultralytics` is not installed yet — assignment 3 needs it.
+
+**No GPU on this machine.** `torch.cuda.is_available()` is False and torch reports 8 threads. Every
+deep-learning number in this repository was produced on CPU, and anything new has to be budgeted the
+same way: measure one epoch before planning a schedule.
 
 Shell here is PowerShell on Windows; a Bash tool is also available. Paths in code use `pathlib`, never
 hard-coded backslashes.
@@ -206,6 +269,20 @@ clustered in the frozen embedding, whereas assignment 1's PCA/LDA projections co
 them in 2-D.
 
 Accuracy is at the dataset's ceiling, so new comparisons here are mostly measuring noise.
+
+## Report machinery worth reusing
+
+Both reports are built the same way, and assignment 3 should copy the pattern rather than invent one:
+
+- `reportN/make_assets.py` reads `results/*.csv` and emits `generated/macros.tex` (one `\newcommand`
+  per number), `generated/tables.tex` and the figures. **No number is ever typed into the .tex.**
+- `reportN/build.py` runs that, then XeLaTeX twice, and refuses to build when it detects escapes eaten
+  by a non-raw Python string (`\ref` becoming CR+`ef`). It prints the page count.
+- `report2/make_docx.js` builds a Word copy from the same macros via the `docx` npm package, so the
+  .docx cannot drift from the .pdf. Verify a .docx by converting it with Word (COM, see the session
+  notes) and looking at the rendered pages — layout bugs are invisible in the XML.
+- `src/*/walkthrough.py` is a scripted, captioned run of the whole pipeline for the silent demo video;
+  `src/cnn/record.py` films it with ffmpeg.
 
 ## Evaluation discipline
 

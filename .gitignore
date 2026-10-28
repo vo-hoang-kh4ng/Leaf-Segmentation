@@ -24,3 +24,8 @@ report2/package-lock.json
 
 # recorded demo videos
 results/*.mp4
+
+# Ultralytics training output (assignment 3): checkpoints and run artefacts
+runs/
+*.pt
+datasets/
