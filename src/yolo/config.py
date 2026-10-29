@@ -28,7 +28,9 @@ VERSION = "yolo11"
 
 DATASETS = {
     "detect": "african-wildlife.yaml",
-    "segment": "carparts-seg.yaml",     # chốt lại sau khi kiểm tra kích thước
+    # package-seg: 1 class, chosen over carparts-seg (23 classes) to keep the
+    # segmentation run light. Both declare a test split.
+    "segment": "package-seg.yaml",
 }
 
 
