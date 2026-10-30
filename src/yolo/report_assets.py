@@ -372,6 +372,42 @@ def ordering_table(spec: TaskSpec, summary: pd.DataFrame,
     return "\n".join(lines)
 
 
+def log_table(spec: TaskSpec, curves: dict[str, pd.DataFrame]) -> str:
+    """An excerpt of the raw per-epoch log, as evidence that training actually ran.
+
+    The assignment asks for a figure "chứng minh mô hình đang huấn luyện" with mAP and
+    loss. The plots show that, but they are drawn by this script; these rows are copied
+    straight out of the run's own results.csv, which Ultralytics wrote epoch by epoch.
+    """
+    m = spec.metric
+    frame = curves["n"]
+    shown = list(range(3)) + [len(frame) - 2, len(frame) - 1]
+    lines = [
+        r"\begin{table}[H]", r"\centering",
+        rf"\caption{{Trích nhật ký huấn luyện của yolo11n{spec.suffix}, chép trực tiếp từ "
+        rf"\texttt{{runs/{spec.task}/yolo11n/results.csv}} --- tệp do Ultralytics ghi sau mỗi "
+        rf"epoch trong lúc chạy. Cột thời gian là giây tính từ lúc bắt đầu.}}",
+        r"\label{tab:log}", r"\small",
+        r"\begin{tabular}{r r r r r r}", r"\toprule",
+        rf"Epoch & Thời gian (s) & Mất mát HL & Mất mát KT & mAP50 ({m}) & mAP50-95 ({m}) \\",
+        r"\midrule",
+    ]
+    train = total_loss(frame, spec, "train")
+    val = total_loss(frame, spec, "val")
+    previous = None
+    for index in shown:
+        row = frame.iloc[index]
+        if previous is not None and index != previous + 1:
+            lines.append(r"\multicolumn{6}{c}{\dots} \\")
+        lines.append(
+            f"{int(row['epoch'])} & {num(row['time'], 1)} & {num(train.iloc[index], 3)} & "
+            f"{num(val.iloc[index], 3)} & {num(row[f'metrics/mAP50({m})'])} & "
+            f"{num(row[f'metrics/mAP50-95({m})'])} " + r"\\")
+        previous = index
+    lines += [r"\bottomrule", r"\end{tabular}", r"\end{table}"]
+    return "\n".join(lines)
+
+
 def class_table(spec: TaskSpec, stats: dict) -> str | None:
     """Per-class annotation counts -- only interesting when there is more than one class."""
     names = stats["names"]
@@ -479,6 +515,7 @@ def build(task: str, out: Path) -> None:
         "table_protocol.tex": protocol_table(spec, summary, curves),
         "table_results.tex": results_table(spec, summary, curves),
         "table_ordering.tex": ordering_table(spec, summary, curves),
+        "table_log.tex": log_table(spec, curves),
     }
     classes = class_table(spec, stats)
     # package-seg has a single class, so a per-class table would be the totals again.

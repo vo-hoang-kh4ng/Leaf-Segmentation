@@ -241,7 +241,9 @@ sẽ làm phẳng toàn bộ phần còn lại.}
 \label{fig:curves}
 \end{figure}
 
-Hình~\ref{fig:curves} là bằng chứng huấn luyện mà đề bài yêu cầu. Ba điều đọc được từ nó:
+Hình~\ref{fig:curves} và Hình~\ref{fig:ultralytics} là bằng chứng huấn luyện mà đề bài yêu cầu;
+Bảng~\ref{tab:log} bổ sung phần nhật ký thô do chính Ultralytics ghi ra sau mỗi epoch, để đối
+chiếu được với các hình. Ba điều đọc được từ các đường cong:
 
 \begin{itemize}
   \item Mất mát trên cả hai tập đều giảm đều và không tách nhau ở cuối, nên không có dấu hiệu quá
@@ -252,6 +254,8 @@ Hình~\ref{fig:curves} là bằng chứng huấn luyện mà đề bài yêu c�
   \item Đường mAP của ba mô hình chồng lên nhau gần như hoàn toàn từ epoch 10 trở đi. Đây là quan
         sát dẫn tới phần phân tích bên dưới.
 \end{itemize}
+
+\input{generated/table_log}
 
 \begin{figure}[H]
 \centering

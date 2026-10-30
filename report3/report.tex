@@ -244,7 +244,9 @@ tắt phép ghép ảnh mosaic trong 10 epoch cuối, khiến dữ liệu huấn
 \label{fig:curves}
 \end{figure}
 
-Hình~\ref{fig:curves} là bằng chứng huấn luyện mà đề bài yêu cầu. Ba điều đọc được từ nó:
+Hình~\ref{fig:curves} và Hình~\ref{fig:ultralytics} là bằng chứng huấn luyện mà đề bài yêu cầu;
+Bảng~\ref{tab:log} bổ sung phần nhật ký thô do chính Ultralytics ghi ra sau mỗi epoch, để đối
+chiếu được với các hình. Ba điều đọc được từ các đường cong:
 
 \begin{itemize}
   \item Mất mát trên cả hai tập đều giảm đều và không tách nhau ở cuối, nên không có dấu hiệu quá
@@ -256,6 +258,8 @@ Hình~\ref{fig:curves} là bằng chứng huấn luyện mà đề bài yêu c�
   \item Từ khoảng epoch 25 trở đi, ba đường gần như chồng lên nhau. Đây là quan sát dẫn tới phần
         phân tích bên dưới.
 \end{itemize}
+
+\input{generated/table_log}
 
 \begin{figure}[H]
 \centering
