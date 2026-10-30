@@ -1,0 +1,17 @@
+\begin{table}[H]
+\centering
+\caption{Kết quả trên tập giữ lại (test). Dòng cuối bảng là độ lệch chuẩn của mAP50-95 trong mười epoch cuối, đo trên tập val. Mức dao động lớn nhất (0{,}0141) lớn hơn khoảng cách giữa ba mô hình trên tập val (0{,}0080), nên thứ tự ba dòng trên không nên đọc như một bảng xếp hạng. Ký hiệu (B) chỉ chỉ số tính trên hộp giới hạn.}
+\label{tab:results}
+\small
+\begin{tabular}{l r r r r r r}
+\toprule
+Mô hình & Tham số (M) & Thời gian (phút) & Precision & Recall & mAP50 & mAP50-95 \\
+\midrule
+yolo11n & 2{,}6 & 5{,}6 & 0{,}949 & 0{,}939 & 0{,}9713 & 0{,}8447 \\
+yolo11s & 9{,}4 & 5{,}6 & 0{,}977 & 0{,}934 & 0{,}9772 & \textbf{0{,}8543} \\
+yolo11m & 20{,}1 & 6{,}9 & 0{,}957 & 0{,}926 & 0{,}9693 & 0{,}8314 \\
+\midrule
+\multicolumn{7}{l}{\small Dao động mAP50-95 trên val, 10 epoch cuối: yolo11n 0{,}0083; yolo11s 0{,}0136; yolo11m 0{,}0141} \\
+\bottomrule
+\end{tabular}
+\end{table}

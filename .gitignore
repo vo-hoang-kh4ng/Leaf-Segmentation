@@ -17,6 +17,10 @@ report/build/*
 !report/build/report.pdf
 report2/build/*
 !report2/build/report.pdf
+report3/build/*
+!report3/build/report.pdf
+report4/build/*
+!report4/build/report.pdf
 
 # docx generator dependencies (npm install docx in report2/ to regenerate the Word file)
 report2/node_modules/
@@ -29,3 +33,7 @@ results/*.mp4
 runs/
 *.pt
 datasets/
+
+# The results archive downloaded from Colab (73 MB): everything in it is already
+# unpacked into runs/ and results/.
+yolo_ketqua.zip

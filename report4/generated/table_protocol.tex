@@ -1,0 +1,23 @@
+\begin{table}[H]
+\centering
+\caption{Giao thức huấn luyện. Ba cỡ mô hình dùng đúng các giá trị này; điểm khác duy nhất giữa ba lần chạy là tệp trọng số khởi tạo. Toàn bộ tham số được khai báo một chỗ trong \texttt{src/yolo/config.py} nên không thể lệch nhau giữa các lần chạy.}
+\label{tab:protocol}
+\small
+\begin{tabular}{l l}
+\toprule
+Tham số & Giá trị \\
+\midrule
+Phiên bản mô hình & YOLO11 (yolo11n-seg, yolo11s-seg, yolo11m-seg) \\
+Trọng số khởi tạo & điểm kiểm tra tiền huấn luyện trên COCO của Ultralytics \\
+Số epoch & 50 \\
+Kích thước ảnh đầu vào & 640$\times$640 \\
+Kích thước lô (batch) & 16 \\
+Hạt giống ngẫu nhiên & 42 \\
+Bộ tối ưu & tự động (\texttt{optimizer=auto}) theo Ultralytics \\
+Tốc độ học & tăng tới 0{,}00192 sau 3 epoch khởi động, giảm dần còn $5{,}96\times 10^{-5}$ \\
+Tăng cường dữ liệu & mặc định của Ultralytics; ghép ảnh (mosaic) tắt ở 10 epoch cuối \\
+Kiên nhẫn dừng sớm & 20 epoch (không mô hình nào bị dừng sớm) \\
+Phần cứng & GPU NVIDIA Tesla T4 trên Google Colab \\
+\bottomrule
+\end{tabular}
+\end{table}
