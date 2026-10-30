@@ -385,7 +385,7 @@ def log_table(spec: TaskSpec, curves: dict[str, pd.DataFrame]) -> str:
     lines = [
         r"\begin{table}[H]", r"\centering",
         rf"\caption{{Trích nhật ký huấn luyện của yolo11n{spec.suffix}, chép trực tiếp từ "
-        rf"\texttt{{runs/{spec.task}/yolo11n/results.csv}} --- tệp do Ultralytics ghi sau mỗi "
+        rf"\texttt{{runs/{spec.task}/yolo11n/results.csv}}, tệp do Ultralytics ghi sau mỗi "
         rf"epoch trong lúc chạy. Cột thời gian là giây tính từ lúc bắt đầu.}}",
         r"\label{tab:log}", r"\small",
         r"\begin{tabular}{r r r r r r}", r"\toprule",

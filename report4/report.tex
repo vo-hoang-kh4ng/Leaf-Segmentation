@@ -59,11 +59,11 @@ Báo cáo này trình bày bài toán phân đoạn đối tượng (object segm
 giao từ trọng số tiền huấn luyện trên COCO. Khác với bài phát hiện đối tượng, ở đây mô hình phải
 trả về mặt nạ (mask) bám theo đường viền thật của vật chứ không chỉ một hộp chữ nhật bao quanh. Em
 huấn luyện ba cỡ mô hình yolo11n-seg, yolo11s-seg và yolo11m-seg dưới một giao thức giống hệt nhau
---- \epochs{} epoch, ảnh \imgsz{} điểm ảnh, lô \batch{}, cùng hạt giống ngẫu nhiên --- để điều duy
+(\epochs{} epoch, ảnh \imgsz{} điểm ảnh, lô \batch{}, cùng hạt giống ngẫu nhiên), để điều duy
 nhất khác nhau giữa ba lần chạy là tệp trọng số khởi tạo. Kết quả cao nhất trên tập giữ lại là
 mAP50-95 của mặt nạ \besttestmap{}, thuộc về \besttest{}. Hai quan sát em thấy đáng chú ý hơn con
 số đó: thứ nhất, khi chuyển sang chỉ số khắt khe về đường viền thì thứ tự ba mô hình đảo ngược so
-với chỉ số dễ dãi mAP50 --- mô hình lớn nhất đứng cuối ở mAP50 nhưng đứng đầu ở mAP50-95; thứ hai,
+với chỉ số dễ dãi mAP50: mô hình lớn nhất đứng cuối ở mAP50 nhưng đứng đầu ở mAP50-95; thứ hai,
 toàn bộ khoảng cách giữa ba mô hình (\testspread{}) vẫn cùng cỡ với mức dao động của chính chúng
 giữa các epoch (\minstd{}--\maxstd{}), nên không đủ cơ sở để xếp hạng dứt khoát.
 \end{abstract}
@@ -73,7 +73,7 @@ giữa các epoch (\minstd{}--\maxstd{}), nên không đủ cơ sở để xếp
 Phân đoạn đối tượng là bước tiếp theo của phát hiện đối tượng. Phát hiện chỉ cần trả lời vật nằm
 trong khung chữ nhật nào; phân đoạn phải chỉ ra từng điểm ảnh nào thuộc về vật. Với một kiện hàng
 đặt nghiêng trên băng chuyền, hộp chữ nhật bao quanh nó chứa rất nhiều điểm ảnh của nền, còn mặt nạ
-thì không --- đó là lý do các ứng dụng cần đo diện tích, đếm chồng vật hay điều khiển tay máy gắp
+thì không, đó là lý do các ứng dụng cần đo diện tích, đếm chồng vật hay điều khiển tay máy gắp
 đều cần mặt nạ chứ không dùng được hộp.
 
 Hướng kinh điển cho bài toán này là Mask R-CNN~\cite{he2017}: thêm một nhánh dự đoán mặt nạ vào
@@ -87,7 +87,7 @@ cho từng vùng.
 Đầu phân đoạn của YOLO11~\cite{khanam2024} đi theo đúng hướng này. Khi đọc mã nguồn của Ultralytics
 (phiên bản 8.4.191, lớp \texttt{Segment} trong \texttt{nn/modules/head.py}), có thể thấy nó mở rộng
 đầu phát hiện bằng một mô-đun \texttt{Proto} sinh 32 mặt nạ nguyên mẫu, cộng thêm một nhánh tích
-chập dự đoán 32 hệ số cho mỗi vật --- tức đúng sơ đồ nguyên mẫu cộng hệ số của YOLACT.
+chập dự đoán 32 hệ số cho mỗi vật, tức đúng sơ đồ nguyên mẫu cộng hệ số của YOLACT.
 
 Đề bài yêu cầu so sánh tối thiểu ba cỡ mô hình của cùng một phiên bản, nên giống bài trước, toàn bộ
 thiết kế thí nghiệm xoay quanh việc giữ ba lần chạy chỉ khác nhau đúng một thứ. Ba câu hỏi em muốn
@@ -120,7 +120,7 @@ giác: ít lớp \emph{không} có nghĩa là huấn luyện nhanh hơn. Chi ph�
 tốn gấp khoảng hai lần thời gian so với bài phát hiện.
 
 Có hai đặc điểm của bộ dữ liệu ảnh hưởng trực tiếp tới cách đọc kết quả. Thứ nhất, trung bình mỗi
-ảnh huấn luyện có \objperimage{} vùng mặt nạ --- cao hơn hẳn bài phát hiện --- vì ảnh thường chụp
+ảnh huấn luyện có \objperimage{} vùng mặt nạ, cao hơn hẳn bài phát hiện, vì ảnh thường chụp
 cả chồng kiện hàng xếp sát nhau. Đây mới là phần khó thật sự: ranh giới giữa hai thùng cạnh nhau
 rất mảnh, và chúng cùng màu, cùng chất liệu. Thứ hai, phần test chỉ có \ntest{} ảnh với
 \ntestobj{} vùng mặt nạ, là một tập nhỏ; mọi chênh lệch nhỏ đo trên đó cần được đọc một cách dè
@@ -131,7 +131,7 @@ dặt.
 \includegraphics[width=0.52\textwidth]{train_batch.jpg}
 \caption{Một lô ảnh huấn luyện do Ultralytics xuất ra, với mặt nạ nhãn tô màu chồng lên ảnh. Phép
 tăng cường ghép ảnh (mosaic) dán bốn ảnh gốc vào một khung~\cite{bochkovskiy2020}. Có thể thấy
-nhiều ảnh chứa cả chồng kiện hàng xếp sát nhau --- trường hợp khó nhất của bài toán.}
+nhiều ảnh chứa cả chồng kiện hàng xếp sát nhau, trường hợp khó nhất của bài toán.}
 \label{fig:batch}
 \end{figure}
 
@@ -155,14 +155,14 @@ So với bài phát hiện, hàm mất mát có thêm một thành phần. Ultra
 nhật ký huấn luyện, và em dùng tổng của chúng khi vẽ hình:
 
 \begin{itemize}
-  \item \texttt{cls\_loss} --- mất mát phân lớp. Ở bài này chỉ có \nclasses{} lớp nên nó gần như
+  \item \texttt{cls\_loss}: mất mát phân lớp. Ở bài này chỉ có \nclasses{} lớp nên nó gần như
         chỉ còn nhiệm vụ phân biệt vật với nền.
-  \item \texttt{box\_loss} --- mất mát định vị hộp. Đầu phân đoạn vẫn dự đoán hộp, vì mặt nạ được
+  \item \texttt{box\_loss}: mất mát định vị hộp. Đầu phân đoạn vẫn dự đoán hộp, vì mặt nạ được
         cắt theo hộp tương ứng trước khi xuất ra.
-  \item \texttt{dfl\_loss} --- Distribution Focal Loss~\cite{li2020}: thay vì dự đoán mỗi cạnh hộp
+  \item \texttt{dfl\_loss}: Distribution Focal Loss~\cite{li2020}: thay vì dự đoán mỗi cạnh hộp
         bằng một con số, mô hình dự đoán một phân phối rời rạc trên các vị trí khả dĩ rồi lấy kỳ
         vọng, nhờ đó biểu diễn được sự không chắc chắn ở những biên mờ.
-  \item \texttt{seg\_loss} --- mất mát mặt nạ, thành phần riêng của bài này, so sánh mặt nạ dựng từ
+  \item \texttt{seg\_loss}: mất mát mặt nạ, thành phần riêng của bài này, so sánh mặt nạ dựng từ
         các nguyên mẫu với mặt nạ nhãn ở mức điểm ảnh.
 \end{itemize}
 
@@ -220,7 +220,7 @@ kết quả ghi kèm toàn bộ tham số giao thức bên cạnh các chỉ s�
 kiện đã sinh ra nó.
 
 Ba mô hình được huấn luyện lần lượt trên GPU Tesla T4 của Google Colab, tổng cộng \totalminutes{}
-phút --- gấp hơn hai lần bài phát hiện, đúng như dự đoán từ số ảnh huấn luyện và từ việc có thêm
+phút, gấp hơn hai lần bài phát hiện, đúng như dự đoán từ số ảnh huấn luyện và từ việc có thêm
 nhánh mặt nạ.
 
 \section{Kết quả}
@@ -229,7 +229,7 @@ nhánh mặt nạ.
 
 Cả ba mô hình đều đạt mAP50 của mặt nạ trên 0,95: với ngưỡng chồng lấn dễ dãi 0,5 thì gần như mọi
 kiện hàng đều được tìm thấy và khoanh vùng hợp lý. Chỉ số khắt khe mAP50-95, lấy trung bình qua
-mười ngưỡng chồng lấn từ 0,5 đến 0,95, giảm xuống khoảng 0,85 --- phần sai còn lại nằm ở độ sát của
+mười ngưỡng chồng lấn từ 0,5 đến 0,95, giảm xuống khoảng 0,85: phần sai còn lại nằm ở độ sát của
 đường viền chứ không phải ở việc bỏ sót vật.
 
 \begin{figure}[H]
@@ -284,7 +284,7 @@ kiện hàng, và báo nhầm một vùng nền thành kiện hàng.}
 
 Ma trận nhầm lẫn ở đây ít thông tin hơn hẳn bài phát hiện, đúng như em dự liệu khi chọn bộ dữ liệu
 một lớp: không có chuyện nhầm lớp này với lớp kia, chỉ còn nhầm vật với nền. Bù lại, đường
-precision--recall vẫn cho thấy được điều đáng quan tâm --- precision giữ ở mức cao cho tới khi
+precision--recall vẫn cho thấy được điều đáng quan tâm: precision giữ ở mức cao cho tới khi
 recall vượt khoảng 0,9, nghĩa là những kiện hàng cuối cùng mà mô hình cố tìm ra mới là nguồn của
 phần lớn cảnh báo sai.
 
@@ -312,7 +312,7 @@ hai nhánh chỉ số. Trên phần test, mAP50-95 của hộp là \nmapbox{} (y
 khoảng cách là \maskboxgap{} điểm.
 
 Khoảng cách này là cái giá của việc phải bám theo đường viền thật. Một hộp chữ nhật chỉ cần bốn số
-đúng, còn mặt nạ phải đúng ở từng điểm ảnh dọc theo chu vi --- mà chu vi lại chính là chỗ nhãn của
+đúng, còn mặt nạ phải đúng ở từng điểm ảnh dọc theo chu vi, mà chu vi lại chính là chỗ nhãn của
 con người cũng không thật sự chính xác: viền thùng carton bị mờ, bị che một phần, hoặc nằm sát một
 thùng khác. Đáng chú ý là khoảng cách chỉ khoảng ba điểm rưỡi chứ không lớn hơn, cho thấy sơ đồ mặt
 nạ nguyên mẫu dựng được đường viền khá sát dù chỉ dùng 32 nguyên mẫu dùng chung cho toàn ảnh.
@@ -322,11 +322,11 @@ nạ nguyên mẫu dựng được đường viền khá sát dù chỉ dùng 32
 \input{generated/table_ordering}
 
 Trên phần test, mAP50-95 của mặt nạ tăng đều theo cỡ mô hình: \nmaptest{}, \smaptest{},
-\mmaptest{}. Nhìn riêng cột đó thì kết luận có vẻ rõ ràng --- mô hình lớn hơn cho mặt nạ sát viền
+\mmaptest{}. Nhìn riêng cột đó thì kết luận có vẻ rõ ràng: mô hình lớn hơn cho mặt nạ sát viền
 hơn. Nhưng có ba điều khiến em không kết luận như vậy.
 
 \textbf{Thứ nhất, hai chỉ số cho hai thứ tự ngược nhau.} Ở mAP50, thứ tự là \nmapfifty{} cho
-yolo11n-seg, \smapfifty{} cho yolo11s-seg và \mmapfifty{} cho yolo11m-seg --- tức mô hình nhỏ nhất
+yolo11n-seg, \smapfifty{} cho yolo11s-seg và \mmapfifty{} cho yolo11m-seg, tức mô hình nhỏ nhất
 đứng \emph{đầu} và mô hình lớn nhất đứng \emph{cuối}, ngược hẳn với mAP50-95. Cách đọc hợp lý: mô
 hình lớn vẽ viền sát hơn (nên thắng ở các ngưỡng chồng lấn cao), nhưng lại báo nhầm nhiều hơn một
 chút (precision của nó là 0,901 so với 0,926 của mô hình nhỏ nhất), và cái giá đó rơi đúng vào
@@ -335,12 +335,12 @@ việc ứng dụng cần viền sát hay cần ít báo nhầm.
 
 \textbf{Thứ hai, khoảng cách vẫn cùng cỡ với nhiễu.} Trong mười epoch cuối, độ lệch chuẩn của
 mAP50-95 trên tập val là \nstd{}, \sstd{} và \mstd{}. Toàn bộ khoảng cách giữa mô hình cao nhất và
-thấp nhất chỉ là \testspread{} trên phần test và \valspread{} trên tập val --- tức xấp xỉ một độ
+thấp nhất chỉ là \testspread{} trên phần test và \valspread{} trên tập val, tức xấp xỉ một độ
 lệch chuẩn. Khoảng chênh cỡ đó không đủ để kết luận chắc chắn.
 
 \textbf{Thứ ba, thứ tự không ổn định giữa hai tập đánh giá.} Trên phần test, thứ tự là n $<$ s $<$
-m; trên tập val, yolo11s-seg lại tụt xuống dưới yolo11n-seg. Mô hình lớn nhất đứng đầu ở cả hai tập
---- đây là dấu hiệu duy nhất nhất quán, và em xem nó là bằng chứng \emph{yếu} nghiêng về phía mô
+m; trên tập val, yolo11s-seg lại tụt xuống dưới yolo11n-seg. Mô hình lớn nhất đứng đầu ở cả hai
+tập. Đây là dấu hiệu duy nhất nhất quán, và em xem nó là bằng chứng \emph{yếu} nghiêng về phía mô
 hình lớn. Nhưng vị trí của hai mô hình còn lại thì đổi chỗ, nên chỉ có phép so sánh giữa n và m là
 còn chút giá trị.
 
@@ -349,7 +349,7 @@ còn chút giá trị.
 \includegraphics[width=0.64\textwidth]{val_vs_test.png}
 \caption{mAP50-95 mặt nạ của ba mô hình trên hai tập đánh giá. Thanh sai số là độ lệch chuẩn của
 chính mô hình đó trong mười epoch cuối. Các thanh sai số phủ lên nhau, và hai đường không cùng
-hình dạng --- dấu hiệu cho thấy nên đọc bảng xếp hạng này một cách dè dặt.}
+hình dạng, dấu hiệu cho thấy nên đọc bảng xếp hạng này một cách dè dặt.}
 \label{fig:gap}
 \end{figure}
 
@@ -375,8 +375,7 @@ rơi vào tập. Đây là lý do báo cáo đối chiếu thêm với tập val
 
 \textbf{Số epoch còn ngắn.} Ba mô hình đạt mAP val cao nhất ở epoch \nbestepoch{}, \sbestepoch{} và
 \mbestepoch{}, tức đường cong đã gần phẳng nhưng cơ chế dừng sớm với \patience{} epoch kiên nhẫn
-chưa hề kích hoạt. Nếu chạy dài hơn, mô hình lớn --- vốn đang chậm chân hơn trong mất mát huấn
-luyện --- có thể còn tiến thêm.
+chưa hề kích hoạt. Nếu chạy dài hơn, mô hình lớn (vốn đang chậm chân hơn trong mất mát huấn luyện) có thể còn tiến thêm.
 
 \textbf{Mỗi cấu hình chỉ chạy một lần.} Em ước lượng nhiễu bằng dao động giữa các epoch ở cuối quá
 trình huấn luyện; đây là cách xấp xỉ. Cách chặt chẽ là chạy lại mỗi mô hình với vài hạt giống ngẫu
@@ -393,13 +392,12 @@ giao thức, bằng học chuyển giao từ trọng số COCO, và chấm đi�
 cao nhất là mAP50-95 mặt nạ \besttestmap{} của \besttest{}, với mAP50 của cả ba mô hình đều trên
 0,95.
 
-Hai điều em rút ra. Thứ nhất, chênh lệch giữa chỉ số của mặt nạ và của hộp --- trung bình
-\maskboxgap{} điểm --- cho thấy phần khó của bài toán nằm ở đường viền, không nằm ở việc tìm ra
+Hai điều em rút ra. Thứ nhất, chênh lệch giữa chỉ số của mặt nạ và của hộp (trung bình \maskboxgap{} điểm) cho thấy phần khó của bài toán nằm ở đường viền, không nằm ở việc tìm ra
 vật. Thứ hai, ba cỡ mô hình chênh nhau \paramratio{} lần về tham số nhưng chỉ chênh \testspread{}
 điểm mAP, xấp xỉ bằng mức dao động giữa các epoch của chính chúng, và hai chỉ số mAP50 với mAP50-95
 còn xếp hạng chúng theo hai thứ tự ngược nhau. Vì vậy báo cáo không khẳng định một mô hình tốt hơn
 mô hình khác, mà kết luận rằng câu trả lời phụ thuộc vào việc ứng dụng coi trọng viền sát hay ít
-báo nhầm --- và rằng một bảng so sánh chỉ đáng tin khi khoảng cách giữa các dòng lớn hơn nhiễu của
+báo nhầm, và rằng một bảng so sánh chỉ đáng tin khi khoảng cách giữa các dòng lớn hơn nhiễu của
 phép đo.
 
 \begin{thebibliography}{9}

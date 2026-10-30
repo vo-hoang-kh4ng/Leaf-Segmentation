@@ -57,8 +57,8 @@
 Báo cáo này trình bày bài toán phát hiện đối tượng (object detection) trên bộ dữ liệu
 \dataname{} gồm \ntotal{} ảnh và \nclasses{} lớp động vật hoang dã, giải bằng YOLO11 của
 Ultralytics theo hướng học chuyển giao từ trọng số tiền huấn luyện trên COCO. Em huấn luyện ba cỡ
-mô hình yolo11n, yolo11s và yolo11m dưới một giao thức giống hệt nhau --- \epochs{} epoch, ảnh
-\imgsz{} điểm ảnh, lô \batch{}, cùng hạt giống ngẫu nhiên --- để điều duy nhất khác nhau giữa ba
+mô hình yolo11n, yolo11s và yolo11m dưới một giao thức giống hệt nhau (\epochs{} epoch, ảnh
+\imgsz{} điểm ảnh, lô \batch{}, cùng hạt giống ngẫu nhiên), để điều duy nhất khác nhau giữa ba
 lần chạy là tệp trọng số khởi tạo. Kết quả cao nhất trên tập giữ lại là mAP50-95 \besttestmap{} của
 \besttest{}. Nhưng phát hiện em thấy đáng nói hơn con số đó: khoảng cách giữa ba mô hình
 (\testspread{} trên tập giữ lại, \valspread{} trên tập val) nhỏ hơn mức dao động của chính mỗi mô
@@ -100,13 +100,13 @@ chạy phải khác nhau đúng một thứ. Ba câu hỏi em muốn trả lời
 được Ultralytics công bố kèm thư viện và tự tải về khi huấn luyện. Trang mô tả chính thức:
 \url{\dataurl}.
 
-Bộ dữ liệu gồm ảnh chụp \nclasses{} loài động vật hoang dã châu Phi --- \classlist{} --- trong môi
+Bộ dữ liệu gồm ảnh chụp \nclasses{} loài động vật hoang dã châu Phi (\classlist{}) trong môi
 trường tự nhiên, đã chia sẵn ba phần train/val/test và gán nhãn theo định dạng YOLO (mỗi dòng là
 một hộp giới hạn với lớp và toạ độ tâm, rộng, cao đã chuẩn hoá về đoạn $[0,1]$).
 
 Em chọn bộ này vì ba lý do. Thứ nhất, nó đủ nhỏ để huấn luyện ba mô hình trong thời gian cho phép.
 Thứ hai, nó có sẵn một phần \emph{test} tách riêng, nên con số cuối cùng không đọc trên chính phần
-dữ liệu đã dùng để theo dõi quá trình huấn luyện --- đây là kỷ luật em giữ từ hai bài trước. Thứ
+dữ liệu đã dùng để theo dõi quá trình huấn luyện; đây là kỷ luật em giữ từ hai bài trước. Thứ
 ba, bốn lớp tương đối cân bằng nên độ chính xác tổng thể không bị một lớp lớn che lấp.
 
 \input{generated/table_dataset}
@@ -135,7 +135,7 @@ và vị trí khác nhau, kể cả khi bộ dữ liệu nhỏ~\cite{bochkovskiy
 
 \subsection{Học chuyển giao thay vì huấn luyện từ đầu}
 
-Với \ntrain{} ảnh huấn luyện thì huấn luyện một mạng phát hiện từ đầu là không khả thi --- số ảnh
+Với \ntrain{} ảnh huấn luyện thì huấn luyện một mạng phát hiện từ đầu là không khả thi: số ảnh
 này nhỏ hơn COCO khoảng hai bậc. Em dùng trọng số đã tiền huấn luyện trên COCO và huấn luyện tiếp
 toàn bộ mạng trên dữ liệu mới. Lý do cách này hiệu quả đã được Yosinski và cộng sự phân tích từ
 sớm~\cite{yosinski2014}: các tầng đầu của mạng tích chập học những thứ chung cho mọi ảnh tự nhiên
@@ -157,9 +157,9 @@ Hàm mất mát có ba thành phần mà Ultralytics ghi riêng trong nhật ký
 chúng để vẽ hình:
 
 \begin{itemize}
-  \item \texttt{cls\_loss} --- mất mát phân lớp, trả lời ``vật này thuộc lớp nào''.
-  \item \texttt{box\_loss} --- mất mát định vị, đo độ khớp giữa hộp dự đoán và hộp thật.
-  \item \texttt{dfl\_loss} --- Distribution Focal Loss~\cite{li2020}. Thay vì dự đoán mỗi cạnh hộp
+  \item \texttt{cls\_loss}: mất mát phân lớp, trả lời ``vật này thuộc lớp nào''.
+  \item \texttt{box\_loss}: mất mát định vị, đo độ khớp giữa hộp dự đoán và hộp thật.
+  \item \texttt{dfl\_loss}: Distribution Focal Loss~\cite{li2020}. Thay vì dự đoán mỗi cạnh hộp
         bằng một con số, mô hình dự đoán một phân phối rời rạc trên các vị trí khả dĩ của cạnh đó
         rồi lấy kỳ vọng. Cách này cho phép mạng biểu diễn được sự không chắc chắn khi biên của vật
         bị mờ hoặc bị che, điều mà một con số đơn lẻ không làm được.
@@ -204,7 +204,7 @@ class TrainConfig:
 \input{generated/table_protocol}
 
 Lớp này được đánh dấu \texttt{frozen=True} nên không thể sửa giá trị sau khi tạo, và phương thức
-\texttt{as\_record()} ghi toàn bộ tham số vào tệp kết quả cùng với các chỉ số --- nhờ vậy bảng kết
+\texttt{as\_record()} ghi toàn bộ tham số vào tệp kết quả cùng với các chỉ số, nhờ vậy bảng kết
 quả luôn mang theo điều kiện đã sinh ra nó. Vòng lặp huấn luyện trong \texttt{src/yolo/train.py}
 chỉ làm ba việc: nạp điểm kiểm tra tương ứng với cỡ mô hình, gọi
 \texttt{model.train(**config.train\_args(size))}, rồi chấm điểm mô hình trên phần \emph{test}
@@ -250,7 +250,7 @@ chiếu được với các hình. Ba điều đọc được từ các đườn
 
 \begin{itemize}
   \item Mất mát trên cả hai tập đều giảm đều và không tách nhau ở cuối, nên không có dấu hiệu quá
-        khớp (overfitting) --- điều này hợp lý vì mô hình chỉ được huấn luyện \epochs{} epoch từ
+        khớp (overfitting). Điều này hợp lý vì mô hình chỉ được huấn luyện \epochs{} epoch từ
         trọng số đã tốt sẵn.
   \item Mô hình lớn nhất khởi đầu \emph{tệ nhất}: trong mười epoch đầu, mAP của yolo11m thấp hơn
         hẳn hai mô hình kia và mất mát trên tập val của nó vọt lên rất cao. Nhiều tham số hơn nghĩa
@@ -334,14 +334,14 @@ không mang thông tin.
 \includegraphics[width=0.74\textwidth]{val_vs_test.png}
 \caption{mAP50-95 của ba mô hình trên hai tập đánh giá. Thanh sai số là độ lệch chuẩn của chính mô
 hình đó trong mười epoch cuối. Các thanh sai số phủ lên nhau hoàn toàn, và hai đường không cùng
-chiều --- hai dấu hiệu cho thấy không nên xếp hạng ba mô hình theo các con số này.}
+chiều. Đó là hai dấu hiệu cho thấy không nên xếp hạng ba mô hình theo các con số này.}
 \label{fig:gap}
 \end{figure}
 
 Vậy kết luận đúng là gì? Em cho rằng nó nằm ở chỗ khác: \textbf{năng lực của mô hình nhỏ nhất đã
 dư cho bài toán này}. Với \nclasses{} lớp phân biệt rõ ràng, \objperimage{} đối tượng mỗi ảnh và
 đối tượng chiếm diện tích lớn trong khung hình, phần khó không nằm ở sức biểu diễn của mạng. Tăng
-số tham số từ \nparams{} triệu lên \mparams{} triệu --- gấp \paramratio{} lần --- không đổi được
+số tham số từ \nparams{} triệu lên \mparams{} triệu (gấp \paramratio{} lần) không đổi được
 điều đó. Trong tình huống này, chọn yolo11n là hợp lý: nó cho độ chính xác tương đương, nhẹ hơn
 nhiều khi triển khai, và chạy nhanh hơn khi suy luận.
 
@@ -359,7 +359,7 @@ Em nêu ba hạn chế mà bản thân kết quả không che được.
 \textbf{Số epoch còn ngắn.} Cả ba mô hình đều đạt mAP cao nhất trên tập val đúng ở epoch cuối
 (epoch \nbestepoch{}, \sbestepoch{} và \mbestepoch{}), tức đường cong vẫn đang đi lên khi huấn
 luyện dừng. Cơ chế dừng sớm với \patience{} epoch kiên nhẫn không hề kích hoạt. Nếu chạy 100 hoặc
-150 epoch, rất có thể mô hình lớn sẽ tách khỏi hai mô hình kia --- kết luận ``ba mô hình như nhau''
+150 epoch, rất có thể mô hình lớn sẽ tách khỏi hai mô hình kia; kết luận ``ba mô hình như nhau''
 của báo cáo này chỉ đúng trong điều kiện \epochs{} epoch.
 
 \textbf{Mỗi cấu hình chỉ chạy một lần.} Em ước lượng nhiễu bằng dao động giữa các epoch ở cuối quá
@@ -381,7 +381,7 @@ giao từ trọng số COCO, và chấm điểm trên phần dữ liệu giữ l
 Điều em rút ra không nằm ở con số cao nhất. Ba cỡ mô hình chênh nhau \paramratio{} lần về số tham
 số nhưng chênh nhau chưa tới \testspread{} điểm mAP, nhỏ hơn mức dao động giữa các epoch của chính
 chúng, và thứ tự xếp hạng còn đảo chiều khi đổi tập đánh giá. Vì vậy báo cáo không khẳng định mô
-hình nào tốt hơn mô hình nào, mà kết luận rằng với bài toán cỡ này, mô hình nhỏ nhất đã đủ --- và
+hình nào tốt hơn mô hình nào, mà kết luận rằng với bài toán cỡ này, mô hình nhỏ nhất đã đủ, và
 rằng một bảng so sánh chỉ đáng tin khi khoảng cách giữa các dòng lớn hơn nhiễu của phép đo.
 
 \begin{thebibliography}{9}
