@@ -37,3 +37,6 @@ datasets/
 # The results archive downloaded from Colab (73 MB): everything in it is already
 # unpacked into runs/ and results/.
 yolo_ketqua.zip
+
+# Submission archives (rebuild with tools_make_submission_zips.py)
+NopBai*.zip
