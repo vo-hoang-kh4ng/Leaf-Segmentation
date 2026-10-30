@@ -12,6 +12,7 @@
 \usepackage{amssymb}
 \usepackage{caption}
 \usepackage[hidelinks]{hyperref}
+\usepackage{xurl}   % cho phép ngắt dòng bên trong các URL dài
 \usepackage{xcolor}
 \usepackage{float}
 \usepackage{listings}
@@ -104,7 +105,14 @@ trả lời:
 \section{Bộ dữ liệu}
 
 Em dùng bộ dữ liệu có sẵn \textbf{\dataname{}} do Ultralytics công bố, tự tải về khi huấn luyện.
-Trang mô tả chính thức: \url{\dataurl}.
+
+\begin{itemize}
+  \item Trang mô tả chính thức: \url{\dataurl}
+  \item Tệp dữ liệu tải trực tiếp: \url{\datazip}
+  \item Tệp cấu hình: \url{https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/package-seg.yaml}
+  \item Nguồn gốc: ảnh được công bố trên Roboflow Universe trước khi Ultralytics đóng gói lại,
+        tại \url{\dataorigin}
+\end{itemize}
 
 Bộ dữ liệu gồm ảnh kiện hàng (thùng carton, bưu kiện) trong kho và trên băng chuyền, chỉ có
 \nclasses{} lớp là \classlist{}, đã chia sẵn ba phần train/val/test. Nhãn ở định dạng phân đoạn của
@@ -126,7 +134,7 @@ rất mảnh, và chúng cùng màu, cùng chất liệu. Thứ hai, phần test
 \ntestobj{} vùng mặt nạ, là một tập nhỏ; mọi chênh lệch nhỏ đo trên đó cần được đọc một cách dè
 dặt.
 
-\begin{figure}[H]
+\begin{figure}[t]
 \centering
 \includegraphics[width=0.52\textwidth]{train_batch.jpg}
 \caption{Một lô ảnh huấn luyện do Ultralytics xuất ra, với mặt nạ nhãn tô màu chồng lên ảnh. Phép

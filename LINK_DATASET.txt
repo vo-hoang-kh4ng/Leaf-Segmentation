@@ -1,0 +1,70 @@
+LINK DATASET - BÀI TẬP CÁ NHÂN THỊ GIÁC MÁY TÍNH
+Học viên: Võ Hoàng Khang - MSHV: 25C01034
+
+MÃ NGUỒN (cả hai bài):
+https://github.com/vo-hoang-kh4ng/Leaf-Segmentation
+
+
+=====================================================================
+BÀI 3 - OBJECT DETECTION
+Dataset: African Wildlife (có sẵn trong Ultralytics, tự tải khi train)
+=====================================================================
+
+Trang mô tả chính thức:
+  https://docs.ultralytics.com/datasets/detect/african-wildlife/
+
+Tệp dữ liệu tải trực tiếp (khoảng 100 MB):
+  https://github.com/ultralytics/assets/releases/download/v0.0.0/african-wildlife.zip
+
+Tệp cấu hình dataset:
+  https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/african-wildlife.yaml
+
+Mô tả ngắn:
+  4 lớp: buffalo, elephant, rhino, zebra. Ảnh chụp động vật hoang dã châu Phi
+  trong môi trường tự nhiên, nhãn ở định dạng hộp giới hạn của YOLO.
+  Số ảnh đếm từ tệp nhãn:
+    train 1052 ảnh / 1931 hộp
+    val    225 ảnh /  379 hộp
+    test   227 ảnh /  375 hộp
+  Trung bình 1,84 đối tượng mỗi ảnh. Bốn lớp tương đối cân bằng (399-575 hộp
+  mỗi lớp ở phần train).
+
+
+=====================================================================
+BÀI 4 - OBJECT SEGMENTATION
+Dataset: Package Segmentation (có sẵn trong Ultralytics, tự tải khi train)
+=====================================================================
+
+Trang mô tả chính thức:
+  https://docs.ultralytics.com/datasets/segment/package-seg/
+
+Tệp dữ liệu tải trực tiếp (khoảng 103 MB):
+  https://github.com/ultralytics/assets/releases/download/v0.0.0/package-seg.zip
+
+Tệp cấu hình dataset:
+  https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/package-seg.yaml
+
+Nguồn gốc dữ liệu (ảnh được công bố trước khi Ultralytics đóng gói lại):
+  https://universe.roboflow.com/factorypackage/factory_package
+
+Mô tả ngắn:
+  1 lớp: package. Ảnh kiện hàng (thùng carton, bưu kiện) trong kho và trên
+  băng chuyền, nhãn ở định dạng đa giác phân đoạn của YOLO.
+  Số ảnh đếm từ tệp nhãn:
+    train 1920 ảnh / 6625 vùng mặt nạ
+    val    188 ảnh /  693 vùng mặt nạ
+    test    89 ảnh /  325 vùng mặt nạ
+  Trung bình 3,45 vùng mặt nạ mỗi ảnh, vì ảnh thường chụp cả chồng kiện hàng
+  xếp sát nhau.
+
+  Lưu ý: phần chú thích bên trong tệp package-seg.yaml của Ultralytics ghi
+  val 89 ảnh và test 188 ảnh, ngược với dữ liệu thật trong thư mục. Các con số
+  ở trên đếm trực tiếp từ tệp nhãn, và khớp với trang mô tả chính thức.
+
+
+=====================================================================
+GHI CHÚ
+=====================================================================
+
+Cả hai bộ dữ liệu đều không cần tải tay: khai báo tên tệp .yaml trong
+src/yolo/config.py, Ultralytics sẽ tự tải về lần chạy đầu tiên.

@@ -12,6 +12,7 @@
 \usepackage{amssymb}
 \usepackage{caption}
 \usepackage[hidelinks]{hyperref}
+\usepackage{xurl}   % cho phép ngắt dòng bên trong các URL dài
 \usepackage{xcolor}
 \usepackage{float}
 \usepackage{listings}
@@ -97,8 +98,13 @@ chạy phải khác nhau đúng một thứ. Ba câu hỏi em muốn trả lời
 \section{Bộ dữ liệu}
 
 Đề bài cho phép ưu tiên dùng bộ dữ liệu có sẵn, nên em chọn \textbf{\dataname{}}, một bộ dữ liệu
-được Ultralytics công bố kèm thư viện và tự tải về khi huấn luyện. Trang mô tả chính thức:
-\url{\dataurl}.
+được Ultralytics công bố kèm thư viện và tự tải về khi huấn luyện.
+
+\begin{itemize}
+  \item Trang mô tả chính thức: \url{\dataurl}
+  \item Tệp dữ liệu tải trực tiếp: \url{\datazip}
+  \item Tệp cấu hình: \url{https://github.com/ultralytics/ultralytics/blob/main/ultralytics/cfg/datasets/african-wildlife.yaml}
+\end{itemize}
 
 Bộ dữ liệu gồm ảnh chụp \nclasses{} loài động vật hoang dã châu Phi (\classlist{}) trong môi
 trường tự nhiên, đã chia sẵn ba phần train/val/test và gán nhãn theo định dạng YOLO (mỗi dòng là
@@ -122,7 +128,7 @@ con vật và chúng chiếm diện tích khá lớn trong khung hình. Đây l�
 so với các bộ như COCO~\cite{lin2014}, nơi một ảnh có thể chứa hàng chục đối tượng nhỏ. Điều này
 giải thích vì sao mAP50 ở phần kết quả lên tới trên 0,96 với cả ba mô hình.
 
-\begin{figure}[H]
+\begin{figure}[t]
 \centering
 \includegraphics[width=0.52\textwidth]{train_batch.jpg}
 \caption{Một lô ảnh huấn luyện do Ultralytics xuất ra. Có thể thấy phép tăng cường dữ liệu ghép

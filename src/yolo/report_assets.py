@@ -42,7 +42,9 @@ class TaskSpec:
     suffix: str                  # checkpoint suffix
     metric: str                  # "B" = bounding box, "M" = mask
     train_losses: tuple[str, ...]
-    url: str
+    url: str                     # trang mô tả chính thức
+    download: str                # tệp dữ liệu Ultralytics tải về
+    origin: str                  # nơi dữ liệu gốc được công bố, rỗng nếu không rõ
     vn_name: str
 
     @property
@@ -55,11 +57,19 @@ SPECS = {
         task="detect", dataset="african-wildlife", suffix="", metric="B",
         train_losses=("box_loss", "cls_loss", "dfl_loss"),
         url="https://docs.ultralytics.com/datasets/detect/african-wildlife/",
+        download="https://github.com/ultralytics/assets/releases/download/v0.0.0/"
+                 "african-wildlife.zip",
+        origin="",
         vn_name="phát hiện đối tượng"),
     "segment": TaskSpec(
         task="segment", dataset="package-seg", suffix="-seg", metric="M",
         train_losses=("box_loss", "seg_loss", "cls_loss", "dfl_loss"),
         url="https://docs.ultralytics.com/datasets/segment/package-seg/",
+        download="https://github.com/ultralytics/assets/releases/download/v0.0.0/"
+                 "package-seg.zip",
+        # Ultralytics repackaged this one; the images were published on Roboflow Universe
+        # first, and the report credits that rather than stopping at the repackager.
+        origin="https://universe.roboflow.com/factorypackage/factory_package",
         vn_name="phân đoạn đối tượng"),
 }
 
@@ -447,6 +457,8 @@ def macros(spec: TaskSpec, summary: pd.DataFrame, curves: dict[str, pd.DataFrame
         # dataset
         "dataname": latex_escape(spec.dataset),
         "dataurl": spec.url,
+        "datazip": spec.download,
+        "dataorigin": spec.origin,
         "nclasses": str(len(stats["names"])),
         "classlist": latex_escape(", ".join(stats["names"])),
         "ntrain": str(splits["train"]["images"]),
