@@ -43,7 +43,12 @@ src/yolo/
       report_assets.py sinh so lieu va hinh cho bao cao tu runs/ va results/
 
 notebooks/yolo_colab.ipynb
-    So tay da dung de huan luyen that tren GPU Tesla T4 cua Google Colab.
+    So tay da dung de huan luyen that tren GPU NVIDIA A100 cua Google Colab.
+
+assets/console_{task}.png
+    Anh chup man hinh phien Colab da chay that: cac epoch cuoi, dong
+    "50 epochs completed", luot cham diem tren phan test va bang tong hop
+    ba co model. Hinh nay cung nam trong bao cao.
 
 results/yolo_{task}_summary.csv
     Ket qua tren phan test cua ba model, kem toan bo tham so giao thuc.
@@ -95,6 +100,8 @@ def build(number: str, spec: dict) -> Path:
         archive.write(ROOT / "requirements.txt", "requirements.txt")
         archive.write(ROOT / "notebooks" / "yolo_colab.ipynb",
                       "notebooks/yolo_colab.ipynb")
+        archive.write(ROOT / "assets" / "console" / f"console_{task}.png",
+                      f"assets/console_{task}.png")
 
         for source in sorted((ROOT / "src" / "yolo").glob("*.py")):
             archive.write(source, f"src/yolo/{source.name}")

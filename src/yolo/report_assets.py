@@ -233,6 +233,13 @@ def copy_figures(spec: TaskSpec, out: Path) -> list[str]:
         if path.exists():
             shutil.copy(path, out / target)
             copied.append(target)
+
+    # The Colab console capture is not produced by anything here; it is a screenshot of the
+    # session that actually ran, kept under assets/ so a rebuild still finds it.
+    console = ROOT / "assets" / "console" / f"console_{spec.task}.png"
+    if console.exists():
+        shutil.copy(console, out / "console.png")
+        copied.append("console.png")
     return copied
 
 
@@ -283,7 +290,9 @@ def protocol_table(spec: TaskSpec, summary: pd.DataFrame,
          "mặc định của Ultralytics; ghép ảnh (mosaic) tắt ở 10 epoch cuối"),
         ("Kiên nhẫn dừng sớm",
          f"{int(row['patience'])} epoch (không mô hình nào bị dừng sớm)"),
-        ("Phần cứng", "GPU NVIDIA Tesla T4 trên Google Colab"),
+        ("Phần cứng", "GPU NVIDIA A100-SXM4-40GB trên Google Colab"),
+        ("Phiên bản thư viện",
+         r"Ultralytics 8.4.192, Python 3.13.16, torch 2.11.0+cu130"),
     ]
     lines = [
         r"\begin{table}[H]", r"\centering",

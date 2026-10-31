@@ -221,7 +221,7 @@ kết quả trong một tệp cấu hình \emph{toàn cục} của máy chứ kh
 thì kết quả có thể rơi vào thư mục của một dự án khác. Trong sổ tay Colab em ghim hai đường dẫn này
 ngay sau khi cài thư viện.
 
-Ba mô hình được huấn luyện lần lượt trên GPU Tesla T4 của Google Colab, tổng cộng \totalminutes{}
+Ba mô hình được huấn luyện lần lượt trên GPU NVIDIA A100 của Google Colab, tổng cộng \totalminutes{}
 phút. Trước đó em có đo thử trên CPU của máy cá nhân: một epoch của yolo11m ở \imgsz{} điểm ảnh mất
 16,4 phút, tức riêng mô hình này đã cần hơn 13 giờ cho \epochs{} epoch. Phép đo đó là lý do em
 chuyển sang Colab chứ không chạy ở máy.
@@ -266,6 +266,18 @@ chiếu được với các hình. Ba điều đọc được từ các đườn
 \end{itemize}
 
 \input{generated/table_log}
+
+\begin{figure}[H]
+\centering
+\includegraphics[width=\textwidth]{console.png}
+\caption{Ảnh chụp màn hình phiên Colab đã chạy thật, phần cuối của lần huấn luyện yolo11m. Đọc từ
+trên xuống: năm epoch cuối với ba thành phần mất mát và mAP trên tập val sau mỗi epoch; dòng
+\texttt{50 epochs completed in 0.113 hours}; lượt kiểm định lại \texttt{best.pt} trên tập val
+(225 ảnh); rồi lượt chấm điểm trên tập test (227 ảnh, mAP50-95 \texttt{0.831}) mà báo cáo này lấy
+số. Dòng cuối là bảng tổng hợp ba cỡ mô hình do \texttt{src/yolo/train.py} in ra, đúng các giá trị
+trong Bảng~\ref{tab:results}.}
+\label{fig:console}
+\end{figure}
 
 \begin{figure}[H]
 \centering
@@ -354,7 +366,7 @@ nhiều khi triển khai, và chạy nhanh hơn khi suy luận.
 \textbf{Về thời gian huấn luyện}, có một điểm em muốn nói rõ để tránh hiểu nhầm. Mô hình m chỉ chậm
 hơn mô hình n \timeratio{} lần (\mminutes{} phút so với \nminutes{} phút), trong khi nó nặng gấp
 \paramratio{} lần về tham số. Tỉ lệ này không phản ánh chi phí tính toán thật của mô hình: với một
-bộ dữ liệu nhỏ như thế này trên GPU T4, phần lớn thời gian mỗi epoch dành cho việc đọc và tăng
+bộ dữ liệu nhỏ như thế này trên GPU A100, phần lớn thời gian mỗi epoch dành cho việc đọc và tăng
 cường ảnh chứ không phải cho phép nhân ma trận. Muốn so sánh chi phí của ba mô hình thì phải đo
 thời gian suy luận trên cùng một lô ảnh, không thể suy ra từ cột thời gian huấn luyện.
 
